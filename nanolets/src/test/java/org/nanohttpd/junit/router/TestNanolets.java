@@ -48,6 +48,7 @@ import org.nanohttpd.router.RouterNanoHTTPD.*;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -327,14 +328,14 @@ public class TestNanolets {
         HttpTrace httphead = new HttpTrace("http://localhost:9090/browse/blabla.html");
         CloseableHttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h3>just a page</h3></body></html>", string);
         response.close();
 
         httphead = new HttpTrace("http://localhost:9090/browse/dir/blabla.html");
         response = httpclient.execute(httphead);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h3>just an other page</h3></body></html>", string);
         response.close();
 
@@ -347,7 +348,7 @@ public class TestNanolets {
         httphead = new HttpTrace("http://localhost:9090/browse/dir/xxx.html");
         response = httpclient.execute(httphead);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h3>Error 404: the requested page doesn't exist.</h3></body></html>", string);
         response.close();
 
@@ -362,7 +363,7 @@ public class TestNanolets {
         response = httpclient.execute(httphead);
         Assert.assertEquals(FixedStatusCode.REQUEST_TIMEOUT.getStatusCode(), response.getStatusLine().getStatusCode());
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("", string);
         response.close();
     }

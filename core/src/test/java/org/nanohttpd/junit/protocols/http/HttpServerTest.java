@@ -21,6 +21,7 @@ import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,11 +97,13 @@ public class HttpServerTest {
             super(port);
         }
 
-        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream,
+                                             OutputStream outputStream) {
             return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream,
+                                             OutputStream outputStream, InetAddress inetAddress) {
             return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
@@ -109,7 +112,7 @@ public class HttpServerTest {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
-            this.files = new HashMap<String, String>();
+            this.files = new HashMap<>();
             try {
                 session.parseBody(this.files);
             } catch (Exception e) {
@@ -248,7 +251,7 @@ public class HttpServerTest {
 
             if (entity != null) {
                 InputStream instream = entity.getContent();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
                 String line = reader.readLine();
                 assertNotNull(line, "Invalid server reponse");
                 assertEquals("Server failed multi-part data parse" + line, "bincomment", line);

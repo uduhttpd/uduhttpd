@@ -56,10 +56,12 @@ public class JavaIOTempDirExistTest {
         Assert.assertEquals(tempFileBackRef.getParentFile(), new File(tmpdir));
 
         // force an exception
-        tempFileBackRef.delete();
+        Assert.assertTrue(tempFileBackRef.delete());
+
         Exception e = null;
         try {
             tempFile.delete();
+
         } catch (Exception ex) {
             e = ex;
         }
@@ -74,9 +76,9 @@ public class JavaIOTempDirExistTest {
             String tempFileName = UUID.randomUUID().toString();
             File newDir = new File("target", tempFileName);
             System.setProperty("java.io.tmpdir", newDir.getAbsolutePath());
-            Assert.assertEquals(false, newDir.exists());
+            Assert.assertFalse(newDir.exists());
             new DefaultTempFileManager();
-            Assert.assertEquals(true, newDir.exists());
+            Assert.assertTrue(newDir.exists());
             newDir.delete();
         } finally {
             System.setProperty("java.io.tmpdir", tmpdir);

@@ -90,19 +90,22 @@ public class HTTPSessionImpl implements HTTPSession {
 
     private String protocolVersion;
 
-    public HTTPSessionImpl(NanoHTTPD httpd, TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+    public HTTPSessionImpl(NanoHTTPD httpd, TempFileManager tempFileManager, InputStream inputStream,
+                           OutputStream outputStream) {
         this.httpd = httpd;
         this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSessionImpl.BUFFER_SIZE);
         this.outputStream = outputStream;
     }
 
-    public HTTPSessionImpl(NanoHTTPD httpd, TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+    public HTTPSessionImpl(NanoHTTPD httpd, TempFileManager tempFileManager, InputStream inputStream,
+                           OutputStream outputStream, InetAddress inetAddress) {
         this.httpd = httpd;
         this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSessionImpl.BUFFER_SIZE);
         this.outputStream = outputStream;
-        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress();
+        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" :
+                inetAddress.getHostAddress();
         this.headers = new HashMap<>();
     }
 
@@ -119,13 +122,15 @@ public class HTTPSessionImpl implements HTTPSession {
 
             StringTokenizer st = new StringTokenizer(inLine);
             if (!st.hasMoreTokens()) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET" + " /example/file.html");
+                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET" + " " +
+                        "/example/file.html");
             }
 
             pre.put("method", st.nextToken());
 
             if (!st.hasMoreTokens()) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET" + " /example/file.html");
+                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET" + " " +
+                        "/example/file.html");
             }
 
             String uri = st.nextToken();
@@ -160,14 +165,16 @@ public class HTTPSessionImpl implements HTTPSession {
 
             pre.put("uri", uri);
         } catch (IOException e) {
-            throw new ResponseException(FixedStatusCode.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + e.getMessage(), e);
+            throw new ResponseException(FixedStatusCode.INTERNAL_ERROR,
+                    "SERVER INTERNAL ERROR: IOException: " + e.getMessage(), e);
         }
     }
 
     /**
      * Decodes the Multipart Body data and put it into Key/Value pairs.
      */
-    private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, List<String>> parms, Map<String, String> files) throws ResponseException {
+    private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, List<String>> parms,
+                                         Map<String, String> files) throws ResponseException {
         int pcount = 0;
         try {
             int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
@@ -182,7 +189,8 @@ public class HTTPSessionImpl implements HTTPSession {
                 int len = Math.min(fbuf.remaining(), MAX_HEADER_SIZE);
                 fbuf.get(partHeaderBuff, 0, len);
                 BufferedReader in =
-                        new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
+                        new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len),
+                                Charset.forName(contentType.getEncoding())), len);
 
                 int headerLines = 0;
                 // First line is boundary string
@@ -241,8 +249,10 @@ public class HTTPSessionImpl implements HTTPSession {
                 fbuf.position(partDataStart);
 
                 List<String> values = parms.get(partName);
-                if (values == null)
+                if (values == null) {
                     values = new ArrayList<>();
+                    parms.put(partName, values);
+                }
 
                 if (partContentType == null) {
                     // Read the part into a string
@@ -359,9 +369,9 @@ public class HTTPSessionImpl implements HTTPSession {
                 this.inputStream.skip(this.splitbyte);
             }
 
-            this.parms = new HashMap<String, List<String>>();
+            this.parms = new HashMap<>();
             if (null == this.headers) {
-                this.headers = new HashMap<String, String>();
+                this.headers = new HashMap<>();
             } else {
                 this.headers.clear();
             }
@@ -370,7 +380,7 @@ public class HTTPSessionImpl implements HTTPSession {
             BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
 
             // Decode the header into parms and header java properties
-            Map<String, String> pre = new HashMap<String, String>();
+            Map<String, String> pre = new HashMap<>();
             decodeHeader(hin, pre, this.parms, this.headers);
 
             if (null != this.remoteIp) {
@@ -389,7 +399,8 @@ public class HTTPSessionImpl implements HTTPSession {
             this.cookies = new CookieHandler(this.headers);
 
             String connection = this.headers.get("connection");
-            boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
+            boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches(
+                    "(?i).*close.*"));
 
             // Ok, now do the serve()
 
@@ -479,7 +490,7 @@ public class HTTPSessionImpl implements HTTPSession {
         int search_window_pos = 0;
         byte[] search_window = new byte[4 * 1024 + boundary.length];
 
-        int first_fill = (b.remaining() < search_window.length) ? b.remaining() : search_window.length;
+        int first_fill = Math.min(b.remaining(), search_window.length);
         b.get(search_window, 0, first_fill);
         int new_bytes = first_fill - boundary.length;
 

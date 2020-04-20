@@ -70,9 +70,11 @@ public class HttpPostRequestTest extends HttpServerTest {
      */
     private String preparePostWithMultipartForm(String fileName, String fileContent) {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD +
+                        "\"; filename=\"" + fileName + "\"\r\n"
                         + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
@@ -92,7 +94,8 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         assertEquals(1, this.testServer.parms.size());
         assertEquals(1, this.testServer.parameters.size());
-        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        BufferedReader reader =
+                new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
                 fileContent
@@ -117,9 +120,11 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testPostWithMultipleMultipartFormFields() throws Exception {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
         String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD +
+                        "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
                         + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2
                         + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
@@ -140,9 +145,11 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testPostWithMultipleMultipartFormFieldsWhereContentTypeWasSeparatedByComma() throws Exception {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD +
+                        "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
                         + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2
                         + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
@@ -163,9 +170,11 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testSimplePostWithSingleMultipartFormField() throws Exception {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\r\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD +
+                        "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
                         + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
@@ -192,7 +201,8 @@ public class HttpPostRequestTest extends HttpServerTest {
         assertEquals(0, this.testServer.parms.size());
         assertEquals(0, this.testServer.parameters.size());
         assertEquals(1, this.testServer.files.size());
-        assertEquals(HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, this.testServer.files.get(HttpPostRequestTest.POST_RAW_CONTENT_FILE_ENTRY));
+        assertEquals(HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS,
+                this.testServer.files.get(HttpPostRequestTest.POST_RAW_CONTENT_FILE_ENTRY));
     }
 
     @Test
@@ -201,10 +211,13 @@ public class HttpPostRequestTest extends HttpServerTest {
         String fileContent = HttpPostRequestTest.VALUE;
 
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
         String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
-                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\""
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD +
+                        "\"; filename=\"" + fileName + "\"\r\n"
+                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "\r\n" +
+                        "Content-Disposition: form-data; name=\""
                         + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2 + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
@@ -214,9 +227,12 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         assertEquals("Parms count did not match.", 2, this.testServer.parms.size());
         assertEquals("Parameters count did not match.", 2, this.testServer.parameters.size());
-        assertEquals("Param value did not match", HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
-        assertEquals("Parameter value did not match", HttpPostRequestTest.VALUE2, this.testServer.parameters.get(HttpPostRequestTest.FIELD2).get(0));
-        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        assertEquals("Param value did not match", HttpPostRequestTest.VALUE2,
+                this.testServer.parms.get(HttpPostRequestTest.FIELD2));
+        assertEquals("Parameter value did not match", HttpPostRequestTest.VALUE2,
+                this.testServer.parameters.get(HttpPostRequestTest.FIELD2).get(0));
+        BufferedReader reader =
+                new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
                 fileContent
@@ -231,7 +247,8 @@ public class HttpPostRequestTest extends HttpServerTest {
         String file2Name = "AnotherPhoto.txt";
         String file2Content = HttpPostRequestTest.VALUE2;
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String header =
+                "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
         String content = "--" + divider + "\r\n"//
                 + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n" //
                 + "Content-Type: image/jpeg\r\n" + "\r\n" //
@@ -250,7 +267,8 @@ public class HttpPostRequestTest extends HttpServerTest {
 
         assertEquals("Parm count did not match.", 2, this.testServer.parms.size());
         assertEquals("Parameter count did not match.", 2, this.testServer.parameters.size());
-        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        BufferedReader reader =
+                new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
                 fileContent
@@ -273,14 +291,16 @@ public class HttpPostRequestTest extends HttpServerTest {
     public void testPostWithMultipartFormUploadFileWithMultilineContent() throws Exception {
         String filename = "GrandCanyon.txt";
         String lineSeparator = "\n";
-        String fileContent = HttpPostRequestTest.VALUE + lineSeparator + HttpPostRequestTest.VALUE + lineSeparator + HttpPostRequestTest.VALUE;
+        String fileContent =
+                HttpPostRequestTest.VALUE + lineSeparator + HttpPostRequestTest.VALUE + lineSeparator + HttpPostRequestTest.VALUE;
         String input = preparePostWithMultipartForm(filename, fileContent);
 
         invokeServer(input);
 
         assertEquals("Parm count did not match.", 1, this.testServer.parms.size());
         assertEquals("Parameter count did not match.", 1, this.testServer.parameters.size());
-        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        BufferedReader reader =
+                new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(fileContent.split(lineSeparator), lines);
     }

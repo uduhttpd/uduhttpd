@@ -130,20 +130,20 @@ public abstract class NanoHTTPD {
 
         private static final long serialVersionUID = 6569838532917408380L;
 
-        private final StatusCode status;
+        private final StatusCode mStatusCode;
 
         public ResponseException(StatusCode status, String message) {
             super(message);
-            this.status = status;
+            mStatusCode = status;
         }
 
         public ResponseException(StatusCode status, String message, Exception e) {
             super(message, e);
-            this.status = status;
+            mStatusCode = status;
         }
 
         public StatusCode getStatus() {
-            return this.status;
+            return mStatusCode;
         }
     }
 

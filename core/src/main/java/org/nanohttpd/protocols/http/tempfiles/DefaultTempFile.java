@@ -60,11 +60,10 @@ public class DefaultTempFile implements TempFile {
     }
 
     @Override
-    public void delete() throws Exception {
+    public void delete() throws IOException {
         NanoHTTPD.safeClose(this.fstream);
-        if (!this.file.delete()) {
-            throw new Exception("could not delete temporary file: " + this.file.getAbsolutePath());
-        }
+        if (!this.file.delete())
+            throw new IOException("could not delete temporary file: " + this.file.getAbsolutePath());
     }
 
     @Override

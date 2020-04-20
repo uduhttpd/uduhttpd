@@ -53,7 +53,9 @@ import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -77,7 +79,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
 
             Method method = session.getMethod();
-            Map<String, String> files = new HashMap<String, String>();
+            Map<String, String> files = new HashMap<>();
             if (Method.PUT.equals(method) || Method.POST.equals(method)) {
                 try {
                     session.parseBody(files);
@@ -91,14 +93,16 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             if (parms.size() > 1) {
                 parms.remove("NanoHttpd.QUERY_STRING");
                 sb.append("-params=").append(parms.size());
-                List<String> p = new ArrayList<String>(parms.keySet());
+                List<String> p = new ArrayList<>(parms.keySet());
                 Collections.sort(p);
                 for (String k : p) {
                     sb.append(';').append(k).append('=').append(parms.get(k));
                 }
             }
+
             if ("/encodingtest".equals(uri)) {
-                return Response.newFixedLengthResponse(FixedStatusCode.OK, MIME_HTML, "<html><head><title>" + "Testé ça</title></head><body>Testé ça</body></html>");
+                return Response.newFixedLengthResponse(FixedStatusCode.OK, MIME_HTML, "<html><head><title>Testé " +
+                        "ça</title></head><body>Testé ça</body></html>");
             } else if ("/chin".equals(uri)) {
                 return Response.newFixedLengthResponse(FixedStatusCode.OK, "application/octet-stream", sb.toString());
             } else {
@@ -182,9 +186,11 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         this.testServer.response = "testPostRequestWithMultipartEncodedParameters";
 
         HttpPost httppost = new HttpPost("http://localhost:8192/chin");
-        MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, "sfsadfasdf", Charset.forName("UTF-8"));
-        reqEntity.addPart("specialString", new StringBody("拖拉图片到浏览器，可以实现预览功能", "text/plain", Charset.forName("UTF-8")));
-        reqEntity.addPart("gender", new StringBody("图片名称", Charset.forName("UTF-8")) {
+        MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, "sfsadfasdf",
+                StandardCharsets.UTF_8);
+        reqEntity.addPart("specialString", new StringBody("拖拉图片到浏览器，可以实现预览功能",
+                "text/plain", StandardCharsets.UTF_8));
+        reqEntity.addPart("gender", new StringBody("图片名称", StandardCharsets.UTF_8) {
 
             @Override
             public String getFilename() {
@@ -197,7 +203,8 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         HttpEntity entity = response.getEntity();
         String responseBody = EntityUtils.toString(entity, "UTF-8");
 
-        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=图片名称;specialString=拖拉图片到浏览器，可以实现预览功能", responseBody);
+        assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=图片名称;special" +
+                "String=拖拉图片到浏览器，可以实现预览功能", responseBody);
     }
 
     @Test

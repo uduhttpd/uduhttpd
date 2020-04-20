@@ -98,7 +98,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     }
 
-    static public class StreamUrl extends DefaultStreamHandler {
+    public static class StreamUrl extends DefaultStreamHandler {
 
         @Override
         public String getMimeType() {

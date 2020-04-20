@@ -45,5 +45,5 @@ public interface TempFileManager {
 
     void clear();
 
-    public TempFile createTempFile(String filename_hint) throws Exception;
+    TempFile createTempFile(String filename_hint) throws Exception;
 }
