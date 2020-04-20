@@ -48,14 +48,14 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
  * directory specified.
  * </p>
  */
-public class DefaultTempFile implements ITempFile {
+public class DefaultTempFile implements TempFile {
 
     private final File file;
 
     private final OutputStream fstream;
 
-    public DefaultTempFile(File tempdir) throws IOException {
-        this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
+    public DefaultTempFile(File tmpFileDirectory) throws IOException {
+        this.file = File.createTempFile("NanoHTTPD-", "", tmpFileDirectory);
         this.fstream = new FileOutputStream(this.file);
     }
 

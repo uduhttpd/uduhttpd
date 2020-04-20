@@ -52,21 +52,22 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 import org.nanohttpd.protocols.websockets.CloseCode;
 import org.nanohttpd.protocols.websockets.NanoWSD;
 import org.nanohttpd.protocols.websockets.OpCode;
 import org.nanohttpd.protocols.websockets.WebSocket;
 import org.nanohttpd.protocols.websockets.WebSocketFrame;
-import org.nanohttpd.util.IHandler;
+import org.nanohttpd.util.Handler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
 
     @Mock
-    private IHTTPSession session;
+    private HTTPSession session;
 
     private MockedWSD nanoWebSocketServer;
 
@@ -84,20 +85,20 @@ public class WebSocketResponseHandlerTest {
 
         // This is to work around Mockito being a little bitch.
         public void initialize() {
-            interceptors = new ArrayList<IHandler<IHTTPSession, Response>>();
+            interceptors = new ArrayList<Handler<HTTPSession, Response>>();
             addHTTPInterceptor(new Interceptor());
 
-            setHTTPHandler(new IHandler<IHTTPSession, Response>() {
+            setHTTPHandler(new Handler<HTTPSession, Response>() {
 
                 @Override
-                public Response handle(IHTTPSession input) {
+                public Response handle(HTTPSession input) {
                     return serve(input);
                 }
             });
         }
 
         @Override
-        protected WebSocket openWebSocket(IHTTPSession handshake) {
+        protected WebSocket openWebSocket(HTTPSession handshake) {
             return new WebSocket(handshake) { // Dummy websocket inner class.
 
                 @Override
@@ -169,7 +170,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(FixedStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test
@@ -193,7 +194,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(FixedStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test

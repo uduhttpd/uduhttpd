@@ -4,22 +4,22 @@ package org.nanohttpd.protocols.http.response;
  * #%L
  * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2016 nanohttpd
+ * Copyright (C) 2012 - 2020 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -34,9 +34,10 @@ package org.nanohttpd.protocols.http.response;
  */
 
 /**
- * Some HTTP response status codes
+ * This enum class defines the known HTTP status codes at a given time making
+ * them easily accessible. If a status code is not present, you can defin
  */
-public enum Status implements IStatus {
+public enum FixedStatusCode implements StatusCode {
     SWITCH_PROTOCOL(101, "Switching Protocols"),
 
     OK(200, "OK"),
@@ -81,31 +82,29 @@ public enum Status implements IStatus {
     SERVICE_UNAVAILABLE(503, "Service Unavailable"),
     UNSUPPORTED_HTTP_VERSION(505, "HTTP Version Not Supported");
 
-    private final int requestStatus;
+    private final int mStatusCode;
 
-    private final String description;
+    private final String mDescription;
 
-    Status(int requestStatus, String description) {
-        this.requestStatus = requestStatus;
-        this.description = description;
+    FixedStatusCode(int statusCode, String description) {
+        mStatusCode = statusCode;
+        mDescription = description;
     }
 
-    public static Status lookup(int requestStatus) {
-        for (Status status : Status.values()) {
-            if (status.getRequestStatus() == requestStatus) {
-                return status;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public String getDescription() {
-        return "" + this.requestStatus + " " + this.description;
+        return mDescription;
+    }
+
+    public String getHttpDescription() {
+        return StatusCodes.toHttpStatusString(this);
+    }
+
+    public int getStatusCode() {
+        return mStatusCode;
     }
 
     @Override
-    public int getRequestStatus() {
-        return this.requestStatus;
+    public String toString() {
+        return getHttpDescription();
     }
 }

@@ -48,7 +48,7 @@ import org.nanohttpd.protocols.http.ClientHandler;
  * The name is useful when profiling the application.
  * </p>
  */
-public class DefaultAsyncRunner implements IAsyncRunner {
+public class DefaultAsyncRunner implements AsyncRunner {
 
     protected long requestCount;
 

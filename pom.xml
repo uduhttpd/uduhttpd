@@ -485,7 +485,7 @@
 			<id>use 1.7 compiler</id>
 			<activation>
 				<file>
-					<exists>/usr/lib/jvm/java-7-openjdk-amd64/bin/javac</exists>
+					<exists>/usr/bin/java</exists>
 				</file>
 			</activation>
 			<build>
@@ -499,7 +499,7 @@
 							<target>1.7</target>
 							<verbose>true</verbose>
 							<fork>true</fork>
-							<executable>/usr/lib/jvm/java-7-openjdk-amd64/bin/javac</executable>
+							<executable>/usr/lib/jvm/java-8-openjdk/bin/javac</executable>
 						</configuration>
 					</plugin>
 				</plugins>

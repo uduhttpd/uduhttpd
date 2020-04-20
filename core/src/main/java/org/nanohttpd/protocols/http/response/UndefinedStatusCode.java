@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http;
+package org.nanohttpd.protocols.http.response;
 
 /*
  * #%L
@@ -33,61 +33,37 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.content.CookieHandler;
-import org.nanohttpd.protocols.http.request.Method;
-
 /**
- * Handles one session, i.e. parses the HTTP request and returns the response.
+ * Some HTTP response status codes
  */
-public interface IHTTPSession {
+public class UndefinedStatusCode implements StatusCode {
 
-    void execute() throws IOException;
+    private final int mStatusCode;
 
-    CookieHandler getCookies();
+    private final String mDescription;
 
-    Map<String, String> getHeaders();
+    UndefinedStatusCode(int statusCode, String description) {
+        mStatusCode = statusCode;
+        mDescription = description;
+    }
 
-    InputStream getInputStream();
+    @Override
+    public String getDescription() {
+        return mDescription;
+    }
 
-    Method getMethod();
+    @Override
+    public String getHttpDescription() {
+        return StatusCodes.toHttpStatusString(this);
+    }
 
-    /**
-     * This method will only return the first value for a given parameter. You
-     * will want to use getParameters if you expect multiple values for a given
-     * key.
-     * 
-     * @deprecated use {@link #getParameters()} instead.
-     */
-    @Deprecated
-    Map<String, String> getParms();
+    @Override
+    public int getStatusCode() {
+        return this.mStatusCode;
+    }
 
-    Map<String, List<String>> getParameters();
-
-    String getQueryParameterString();
-
-    /**
-     * @return the path part of the URL.
-     */
-    String getUri();
-
-    /**
-     * Adds the files in the request body to the files map.
-     * 
-     * @param files
-     *            map to modify
-     */
-    void parseBody(Map<String, String> files) throws IOException, ResponseException;
-
-    /**
-     * Get the remote ip address of the requester.
-     * 
-     * @return the IP address.
-     */
-    String getRemoteIpAddress();
+    @Override
+    public String toString() {
+        return getHttpDescription();
+    }
 }

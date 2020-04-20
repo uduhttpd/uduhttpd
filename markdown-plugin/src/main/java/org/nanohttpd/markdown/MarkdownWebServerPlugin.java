@@ -43,10 +43,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 import org.nanohttpd.webserver.WebServerPlugin;
 import org.pegdown.PegDownProcessor;
 
@@ -110,7 +111,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     }
 
     @Override
-    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
+    public Response serveFile(String uri, Map<String, String> headers, HTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
         byte[] bytes;
         try {
@@ -119,6 +120,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
             MarkdownWebServerPlugin.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
             bytes = new byte[0];
         }
-        return markdownSource == null ? null : Response.newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(bytes), bytes.length);
+        return markdownSource == null ? null : Response.newFixedLengthResponse(FixedStatusCode.OK, NanoHTTPD.MIME_HTML,
+                new ByteArrayInputStream(bytes), bytes.length);
     }
 }

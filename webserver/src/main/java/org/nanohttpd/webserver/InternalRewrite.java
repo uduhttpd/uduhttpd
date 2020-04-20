@@ -37,8 +37,9 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/15/13 at 2:52 PM
@@ -50,7 +51,7 @@ public class InternalRewrite extends Response {
     private final Map<String, String> headers;
 
     public InternalRewrite(Map<String, String> headers, String uri) {
-        super(Status.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(new byte[0]), 0);
+        super(FixedStatusCode.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(new byte[0]), 0);
         this.headers = headers;
         this.uri = uri;
     }

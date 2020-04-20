@@ -50,23 +50,23 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
  * invoked at the end of processing a request).
  * </p>
  */
-public class DefaultTempFileManager implements ITempFileManager {
+public class DefaultTempFileManager implements TempFileManager {
 
     private final File tmpdir;
 
-    private final List<ITempFile> tempFiles;
+    private final List<TempFile> tempFiles;
 
     public DefaultTempFileManager() {
         this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
         if (!tmpdir.exists()) {
             tmpdir.mkdirs();
         }
-        this.tempFiles = new ArrayList<ITempFile>();
+        this.tempFiles = new ArrayList<>();
     }
 
     @Override
     public void clear() {
-        for (ITempFile file : this.tempFiles) {
+        for (TempFile file : this.tempFiles) {
             try {
                 file.delete();
             } catch (Exception ignored) {
@@ -77,7 +77,7 @@ public class DefaultTempFileManager implements ITempFileManager {
     }
 
     @Override
-    public ITempFile createTempFile(String filename_hint) throws Exception {
+    public TempFile createTempFile(String filename_hint) throws Exception {
         DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
         this.tempFiles.add(tempFile);
         return tempFile;

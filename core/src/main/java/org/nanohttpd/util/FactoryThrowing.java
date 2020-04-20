@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http.threading;
+package org.nanohttpd.util;
 
 /*
  * #%L
@@ -33,16 +33,17 @@ package org.nanohttpd.protocols.http.threading;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.ClientHandler;
-
 /**
- * Pluggable strategy for asynchronously executing requests.
+ * Represents a factory that can throw an exception instead of actually creating
+ * an object
+ * 
+ * @author LordFokas
+ * @param <T>
+ *            The Type of object to create
+ * @param <E>
+ *            The base Type of exceptions that can be thrown
  */
-public interface IAsyncRunner {
+public interface FactoryThrowing<T, E extends Throwable> {
 
-    void closeAll();
-
-    void closed(ClientHandler clientHandler);
-
-    void exec(ClientHandler code);
+    T create() throws E;
 }

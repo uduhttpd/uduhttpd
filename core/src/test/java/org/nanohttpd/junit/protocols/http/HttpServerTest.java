@@ -65,13 +65,13 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/10/13 at 8:32 PM
@@ -108,16 +108,16 @@ public class HttpServerTest {
             super(port);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(HTTPSession session) {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
@@ -159,7 +159,8 @@ public class HttpServerTest {
         // assertEquals(expected.length, lines.size());
         for (int i = 0; i < expected.length; i++) {
             String line = lines.get(i);
-            assertTrue("Output line " + i + " doesn't match expectation.\n" + "  Output: " + line + "\n" + "Expected: " + expected[i], line.matches(expected[i]));
+            assertTrue("Output line " + i + " doesn't match expectation.\n" + "  Output: " + line + "\n" +
+                    "Expected: " + expected[i], line.matches(expected[i]));
         }
     }
 
@@ -176,7 +177,7 @@ public class HttpServerTest {
     protected ByteArrayOutputStream invokeServer(String request) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSessionImpl session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         try {
             session.execute();
         } catch (IOException e) {
@@ -225,7 +226,7 @@ public class HttpServerTest {
                 final Map<String, String> files = new HashMap<String, String>();
 
                 @Override
-                public Response serve(IHTTPSession session) {
+                public Response serve(HTTPSession session) {
                     StringBuilder responseMsg = new StringBuilder();
 
                     try {
@@ -281,7 +282,7 @@ public class HttpServerTest {
             final Map<String, String> files = new HashMap<String, String>();
 
             @Override
-            public Response serve(IHTTPSession session) {
+            public Response serve(HTTPSession session) {
                 String responseMsg = "pass";
 
                 try {

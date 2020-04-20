@@ -50,10 +50,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DecompressingHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.StatusCode;
 
 public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest.TestServer> {
 
@@ -66,7 +67,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(HTTPSession session) {
             return response.setUseGzip(true);
         }
     }
@@ -90,7 +91,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
     @Test
     public void contentEncodingShouldBeAddedToChunkedResponses() throws IOException {
         InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = Response.newChunkedResponse(Status.OK, "text/plain", data);
+        testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);
@@ -132,7 +133,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
     @Test
     public void chunkedContentIsEncodedProperly() throws IOException {
         InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = Response.newChunkedResponse(Status.OK, "text/plain", data);
+        testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = new DecompressingHttpClient(httpclient).execute(request);

@@ -51,11 +51,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 
 /**
  * @author vnnv
@@ -70,15 +71,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public interface UriResponder {
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session);
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response put(UriResource uriResource, Map<String, String> urlParams, HTTPSession session);
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response post(UriResource uriResource, Map<String, String> urlParams, HTTPSession session);
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response delete(UriResource uriResource, Map<String, String> urlParams, HTTPSession session);
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, HTTPSession session);
     }
 
     /**
@@ -89,27 +90,27 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         public abstract String getMimeType();
 
-        public abstract IStatus getStatus();
+        public abstract StatusCode getStatus();
 
         public abstract InputStream getData();
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return Response.newChunkedResponse(getStatus(), getMimeType(), getData());
         }
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response post(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response put(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response delete(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return get(uriResource, urlParams, session);
         }
     }
@@ -122,9 +123,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         public abstract String getText();
 
-        public abstract IStatus getStatus();
+        public abstract StatusCode getStatus();
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             return Response.newFixedLengthResponse(getStatus(), getMimeType(), getText());
         }
 
@@ -150,11 +151,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             StringBuilder text = new StringBuilder("<html><body>");
             text.append("<h1>Url: ");
             text.append(session.getUri());
@@ -206,11 +207,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             String baseUri = uriResource.getUri();
             String realUri = normalizeUri(session.getUri());
             for (int index = 0; index < Math.min(baseUri.length(), realUri.length()); index++) {
@@ -235,7 +236,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 try {
                     return Response.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
                 } catch (IOException ioe) {
-                    return Response.newFixedLengthResponse(Status.REQUEST_TIMEOUT, "text/plain", (String) null);
+                    return Response.newFixedLengthResponse(FixedStatusCode.REQUEST_TIMEOUT, "text/plain",
+                            (String) null);
                 }
             }
         }
@@ -260,8 +262,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.NOT_FOUND;
+        public StatusCode getStatus() {
+            return FixedStatusCode.NOT_FOUND;
         }
     }
 
@@ -280,8 +282,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
 
     }
@@ -298,8 +300,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
     }
 
@@ -373,7 +375,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return Pattern.compile(patternUri);
         }
 
-        public Response process(Map<String, String> urlParams, IHTTPSession session) {
+        public Response process(Map<String, String> urlParams, HTTPSession session) {
             String error = "General error!";
             if (handler != null) {
                 try {
@@ -393,7 +395,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                                 return responder.other(session.getMethod().toString(), this, urlParams, session);
                         }
                     } else {
-                        return Response.newFixedLengthResponse(Status.OK, "text/plain", //
+                        return Response.newFixedLengthResponse(FixedStatusCode.OK, "text/plain", //
                                 new StringBuilder("Return: ")//
                                         .append(handler.getCanonicalName())//
                                         .append(".toString() -> ")//
@@ -405,7 +407,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                     LOG.log(Level.SEVERE, error, e);
                 }
             }
-            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", error);
+            return Response.newFixedLengthResponse(FixedStatusCode.INTERNAL_ERROR, "text/plain", error);
         }
 
         @Override
@@ -579,11 +581,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * e.g. mapping 1 = /user/:id mapping 2 = /user/help if the incoming uri
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
-         * 
-         * @param url
+         *
          * @return
          */
-        public Response process(IHTTPSession session) {
+        public Response process(HTTPSession session) {
             String work = normalizeUri(session.getUri());
             Map<String, String> params = null;
             UriResource uriResource = error404Url;
@@ -667,7 +668,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
+    public Response serve(HTTPSession session) {
         // Try to find match
         return router.process(session);
     }

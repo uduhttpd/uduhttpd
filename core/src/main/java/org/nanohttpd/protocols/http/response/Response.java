@@ -68,7 +68,7 @@ public class Response implements Closeable {
     /**
      * HTTP status code after processing, e.g. "200 OK", Status.OK
      */
-    private IStatus status;
+    private StatusCode status;
 
     /**
      * MIME type of content, e.g. "text/html"
@@ -129,7 +129,7 @@ public class Response implements Closeable {
         "rawtypes",
         "unchecked"
     })
-    protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    protected Response(StatusCode status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
         if (data == null) {
@@ -214,7 +214,7 @@ public class Response implements Closeable {
         return this.requestMethod;
     }
 
-    public IStatus getStatus() {
+    public StatusCode getStatus() {
         return this.status;
     }
 
@@ -234,7 +234,7 @@ public class Response implements Closeable {
                 throw new Error("sendResponse(): Status can't be null.");
             }
             PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, new ContentType(this.mimeType).getEncoding())), false);
-            pw.append("HTTP/1.1 ").append(this.status.getDescription()).append(" \r\n");
+            pw.append("HTTP/1.1 ").append(this.status.getHttpDescription()).append(" \r\n");
             if (this.mimeType != null) {
                 printHeader(pw, "Content-Type", this.mimeType);
             }
@@ -287,8 +287,8 @@ public class Response implements Closeable {
             } catch (NumberFormatException ex) {
                 NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
             }
-        }else{
-        	pw.print("Content-Length: " + size + "\r\n");
+        } else {
+            pw.print("Content-Length: " + size + "\r\n");
         }
         return size;
     }
@@ -300,7 +300,7 @@ public class Response implements Closeable {
             try {
                 chunkedOutputStream.finish();
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }
@@ -315,7 +315,7 @@ public class Response implements Closeable {
             try {
                 gzipOutputStream = new GZIPOutputStream(outputStream);
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }
@@ -354,7 +354,7 @@ public class Response implements Closeable {
             try {
                 outputStream.write(buff, 0, read);
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }
@@ -380,32 +380,32 @@ public class Response implements Closeable {
         this.requestMethod = requestMethod;
     }
 
-    public void setStatus(IStatus status) {
+    public void setStatus(StatusCode status) {
         this.status = status;
     }
 
     /**
      * Create a response with unknown length (using HTTP 1.1 chunking).
      */
-    public static Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
+    public static Response newChunkedResponse(StatusCode status, String mimeType, InputStream data) {
         return new Response(status, mimeType, data, -1);
     }
 
-    public static Response newFixedLengthResponse(IStatus status, String mimeType, byte[] data) {
+    public static Response newFixedLengthResponse(StatusCode status, String mimeType, byte[] data) {
         return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(data), data.length);
     }
 
     /**
      * Create a response with known length.
      */
-    public static Response newFixedLengthResponse(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    public static Response newFixedLengthResponse(StatusCode status, String mimeType, InputStream data, long totalBytes) {
         return new Response(status, mimeType, data, totalBytes);
     }
 
     /**
      * Create a text response with known length.
      */
-    public static Response newFixedLengthResponse(IStatus status, String mimeType, String txt) {
+    public static Response newFixedLengthResponse(StatusCode status, String mimeType, String txt) {
         ContentType contentType = new ContentType(mimeType);
         if (txt == null) {
             return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(new byte[0]), 0);
@@ -429,7 +429,7 @@ public class Response implements Closeable {
      * Create a text response with known length.
      */
     public static Response newFixedLengthResponse(String msg) {
-        return newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, msg);
+        return newFixedLengthResponse(FixedStatusCode.OK, NanoHTTPD.MIME_HTML, msg);
     }
 
     public Response setUseGzip(boolean useGzip) {

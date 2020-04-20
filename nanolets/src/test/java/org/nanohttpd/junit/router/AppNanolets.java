@@ -46,17 +46,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
-import org.nanohttpd.router.RouterNanoHTTPD.DefaultHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.DefaultStreamHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.GeneralHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.StaticPageHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResource;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResponder;
 import org.nanohttpd.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
@@ -70,7 +65,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return "not implemented";
         }
 
-        public String getText(Map<String, String> urlParams, IHTTPSession session) {
+        public String getText(Map<String, String> urlParams, HTTPSession session) {
             String text = "<html><body>User handler. Method: " + session.getMethod().toString() + "<br>";
             text += "<h1>Uri parameters:</h1>";
             for (Map.Entry<String, String> entry : urlParams.entrySet()) {
@@ -95,11 +90,11 @@ public class AppNanolets extends RouterNanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
             String text = getText(urlParams, session);
             ByteArrayInputStream inp = new ByteArrayInputStream(text.getBytes());
             int size = text.getBytes().length;
@@ -116,8 +111,8 @@ public class AppNanolets extends RouterNanoHTTPD {
         }
 
         @Override
-        public IStatus getStatus() {
-            return Status.OK;
+        public StatusCode getStatus() {
+            return FixedStatusCode.OK;
         }
 
         @Override

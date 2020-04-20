@@ -47,7 +47,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.content.Cookie;
 import org.nanohttpd.protocols.http.content.CookieHandler;
@@ -69,7 +69,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(HTTPSession session) {
             CookieHandler cookies = session.getCookies();
             for (String cookieName : cookies) {
                 this.cookiesReceived.add(new Cookie(cookieName, cookies.read(cookieName)));

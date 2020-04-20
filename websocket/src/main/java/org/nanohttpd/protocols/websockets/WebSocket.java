@@ -8,18 +8,18 @@ package org.nanohttpd.protocols.websockets;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,6 +33,10 @@ package org.nanohttpd.protocols.websockets;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.Response;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,10 +44,6 @@ import java.nio.charset.CharacterCodingException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-
-import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
 
 public abstract class WebSocket {
 
@@ -59,9 +59,10 @@ public abstract class WebSocket {
 
     protected boolean enforceNoGzip = true;
 
-    private final IHTTPSession handshakeRequest;
+    private final HTTPSession handshakeRequest;
 
-    private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
+    private final Response handshakeResponse = new Response(FixedStatusCode.SWITCH_PROTOCOL, null, null,
+            0) {
 
         @Override
         public void send(OutputStream out) {
@@ -74,7 +75,7 @@ public abstract class WebSocket {
         }
     };
 
-    public WebSocket(IHTTPSession handshakeRequest) {
+    public WebSocket(HTTPSession handshakeRequest) {
         this.handshakeRequest = handshakeRequest;
         this.in = handshakeRequest.getInputStream();
         if (enforceNoGzip)
@@ -99,9 +100,8 @@ public abstract class WebSocket {
 
     /**
      * Debug method. <b>Do not Override unless for debug purposes!</b>
-     * 
-     * @param frame
-     *            The received WebSocket Frame.
+     *
+     * @param frame The received WebSocket Frame.
      */
     protected void debugFrameReceived(WebSocketFrame frame) {
     }
@@ -109,9 +109,8 @@ public abstract class WebSocket {
     /**
      * Debug method. <b>Do not Override unless for debug purposes!</b><br>
      * This method is called before actually sending the frame.
-     * 
-     * @param frame
-     *            The sent WebSocket Frame.
+     *
+     * @param frame The sent WebSocket Frame.
      */
     protected void debugFrameSent(WebSocketFrame frame) {
     }
@@ -150,7 +149,7 @@ public abstract class WebSocket {
 
     // --------------------------------IO--------------------------------------
 
-    public IHTTPSession getHandshakeRequest() {
+    public HTTPSession getHandshakeRequest() {
         return this.handshakeRequest;
     }
 

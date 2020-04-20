@@ -43,7 +43,7 @@ package org.nanohttpd.util;
  * @param <O>
  *            The output type.
  */
-public interface IHandler<I, O> {
+public interface Handler<I, O> {
 
     public O handle(I input);
 }

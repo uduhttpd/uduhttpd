@@ -33,21 +33,17 @@ package org.nanohttpd.protocols.http.tempfiles;
  * #L%
  */
 
-import java.io.OutputStream;
-
 /**
- * A temp file.
+ * Temp file manager.
  * <p/>
  * <p>
- * Temp files are responsible for managing the actual temporary storage and
- * cleaning themselves up when no longer needed.
+ * Temp file managers are created 1-to-1 with incoming requests, to create and
+ * cleanup temporary files created as a result of handling the request.
  * </p>
  */
-public interface ITempFile {
+public interface TempFileManager {
 
-    public void delete() throws Exception;
+    void clear();
 
-    public String getName();
-
-    public OutputStream open() throws Exception;
+    public TempFile createTempFile(String filename_hint) throws Exception;
 }

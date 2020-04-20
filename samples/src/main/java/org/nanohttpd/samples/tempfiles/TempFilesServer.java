@@ -38,10 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
-import org.nanohttpd.protocols.http.tempfiles.ITempFile;
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.protocols.http.tempfiles.TempFile;
+import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 import org.nanohttpd.samples.http.DebugServer;
-import org.nanohttpd.util.IFactory;
+import org.nanohttpd.util.Factory;
 import org.nanohttpd.util.ServerRunner;
 
 /**
@@ -49,15 +49,15 @@ import org.nanohttpd.util.ServerRunner;
  */
 public class TempFilesServer extends DebugServer {
 
-    private static class ExampleManager implements ITempFileManager {
+    private static class ExampleManager implements TempFileManager {
 
         private final File tmpdir;
 
-        private final List<ITempFile> tempFiles;
+        private final List<TempFile> tempFiles;
 
         private ExampleManager() {
             this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
-            this.tempFiles = new ArrayList<ITempFile>();
+            this.tempFiles = new ArrayList<TempFile>();
         }
 
         @Override
@@ -65,7 +65,7 @@ public class TempFilesServer extends DebugServer {
             if (!this.tempFiles.isEmpty()) {
                 System.out.println("Cleaning up:");
             }
-            for (ITempFile file : this.tempFiles) {
+            for (TempFile file : this.tempFiles) {
                 try {
                     System.out.println("   " + file.getName());
                     file.delete();
@@ -76,7 +76,7 @@ public class TempFilesServer extends DebugServer {
         }
 
         @Override
-        public ITempFile createTempFile(String filename_hint) throws Exception {
+        public TempFile createTempFile(String filename_hint) throws Exception {
             DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
             this.tempFiles.add(tempFile);
             System.out.println("Created tempFile: " + tempFile.getName());
@@ -84,10 +84,10 @@ public class TempFilesServer extends DebugServer {
         }
     }
 
-    private static class ExampleManagerFactory implements IFactory<ITempFileManager> {
+    private static class ExampleManagerFactory implements Factory<TempFileManager> {
 
         @Override
-        public ITempFileManager create() {
+        public TempFileManager create() {
             return new ExampleManager();
         }
     }

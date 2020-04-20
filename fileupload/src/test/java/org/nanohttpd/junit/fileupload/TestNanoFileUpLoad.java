@@ -33,16 +33,6 @@ package org.nanohttpd.junit.fileupload;
  * #L%
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -61,19 +51,25 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.nanohttpd.fileupload.NanoFileUpload;
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * very strange but if the file upload is the first request the test fails.
@@ -112,18 +108,18 @@ public class TestNanoFileUpLoad {
             uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         NanoFileUpload uploader;
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(HTTPSession session) {
 
             this.uri = session.getUri();
             this.method = session.getMethod();
@@ -158,7 +154,7 @@ public class TestNanoFileUpLoad {
                         }
                     }
                 } catch (Exception e) {
-                    this.response.setStatus(Status.INTERNAL_ERROR);
+                    this.response.setStatus(FixedStatusCode.INTERNAL_ERROR);
                     e.printStackTrace();
                 }
             }

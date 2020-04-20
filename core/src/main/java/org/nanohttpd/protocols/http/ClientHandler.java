@@ -40,7 +40,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
 /**
  * The runnable that will be used for every new client connection.
@@ -69,8 +69,8 @@ public class ClientHandler implements Runnable {
         OutputStream outputStream = null;
         try {
             outputStream = this.acceptSocket.getOutputStream();
-            ITempFileManager tempFileManager = httpd.getTempFileManagerFactory().create();
-            HTTPSession session = new HTTPSession(httpd, tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+            TempFileManager tempFileManager = httpd.getTempFileManagerFactory().create();
+            HTTPSessionImpl session = new HTTPSessionImpl(httpd, tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
             while (!this.acceptSocket.isClosed()) {
                 session.execute();
             }

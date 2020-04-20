@@ -33,17 +33,6 @@ package org.nanohttpd.junit.protocols.http.integration;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -58,11 +47,18 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.StatusCode;
+
+import java.nio.charset.Charset;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 5/19/13 at 5:36 PM
@@ -78,7 +74,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(HTTPSession session) {
             StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
 
             Method method = session.getMethod();
@@ -103,9 +99,9 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
                 }
             }
             if ("/encodingtest".equals(uri)) {
-                return Response.newFixedLengthResponse(Status.OK, MIME_HTML, "<html><head><title>Testé ça</title></head><body>Testé ça</body></html>");
+                return Response.newFixedLengthResponse(FixedStatusCode.OK, MIME_HTML, "<html><head><title>" + "Testé ça</title></head><body>Testé ça</body></html>");
             } else if ("/chin".equals(uri)) {
-                return Response.newFixedLengthResponse(Status.OK, "application/octet-stream", sb.toString());
+                return Response.newFixedLengthResponse(FixedStatusCode.OK, "application/octet-stream", sb.toString());
             } else {
                 return Response.newFixedLengthResponse(sb.toString());
             }

@@ -36,12 +36,12 @@ package org.nanohttpd.protocols.http.sockets;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import org.nanohttpd.util.IFactoryThrowing;
+import org.nanohttpd.util.FactoryThrowing;
 
 /**
  * Creates a normal ServerSocket for TCP connections
  */
-public class DefaultServerSocketFactory implements IFactoryThrowing<ServerSocket, IOException> {
+public class DefaultServerSocketFactory implements FactoryThrowing<ServerSocket, IOException> {
 
     @Override
     public ServerSocket create() throws IOException {

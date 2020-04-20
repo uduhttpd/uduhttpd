@@ -36,7 +36,7 @@ package org.nanohttpd.samples.http;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
@@ -61,7 +61,7 @@ public class HelloServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
+    public Response serve(HTTPSession session) {
         Method method = session.getMethod();
         String uri = session.getUri();
         HelloServer.LOG.info(method + " '" + uri + "' ");

@@ -1,4 +1,4 @@
-package org.nanohttpd.util;
+package org.nanohttpd.protocols.http.threading;
 
 /*
  * #%L
@@ -33,14 +33,16 @@ package org.nanohttpd.util;
  * #L%
  */
 
-/**
- * Represents a simple factory
- * 
- * @author LordFokas
- * @param <T>
- *            The Type of object to create
- */
-public interface IFactory<T> {
+import org.nanohttpd.protocols.http.ClientHandler;
 
-    T create();
+/**
+ * Pluggable strategy for asynchronously executing requests.
+ */
+public interface AsyncRunner {
+
+    void closeAll();
+
+    void closed(ClientHandler clientHandler);
+
+    void exec(ClientHandler code);
 }

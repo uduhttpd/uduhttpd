@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.util.ServerRunner;
@@ -57,7 +57,7 @@ public class DebugServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
+    public Response serve(HTTPSession session) {
         Map<String, List<String>> decodedQueryParameters = decodeParameters(session.getQueryParameterString());
 
         StringBuilder sb = new StringBuilder();

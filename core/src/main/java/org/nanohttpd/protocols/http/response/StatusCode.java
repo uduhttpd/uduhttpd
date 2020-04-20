@@ -33,9 +33,13 @@ package org.nanohttpd.protocols.http.response;
  * #L%
  */
 
-public interface IStatus {
+import java.util.Map.Entry;
+
+public interface StatusCode {
 
     String getDescription();
 
-    int getRequestStatus();
+    String getHttpDescription();
+
+    int getStatusCode();
 }

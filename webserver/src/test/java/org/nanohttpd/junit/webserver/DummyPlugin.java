@@ -38,9 +38,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
 import org.nanohttpd.webserver.InternalRewrite;
 import org.nanohttpd.webserver.WebServerPlugin;
 
@@ -56,13 +57,13 @@ public class DummyPlugin implements WebServerPlugin {
     }
 
     @Override
-    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
+    public Response serveFile(String uri, Map<String, String> headers, HTTPSession session, File file, String mimeType) {
         if (uri.contains("rewrite")) {
             return new InternalRewrite(headers, "/testdir/test.html");
         }
         byte[] bytes = "<xml/>".getBytes();
         InputStream data = new ByteArrayInputStream(bytes);
-        return Response.newFixedLengthResponse(Status.OK, "text/xml", data, bytes.length);
+        return Response.newFixedLengthResponse(FixedStatusCode.OK, "text/xml", data, bytes.length);
     }
 
 }
