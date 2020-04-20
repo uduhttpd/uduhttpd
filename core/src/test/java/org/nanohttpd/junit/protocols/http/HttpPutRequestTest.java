@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,14 +33,14 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
-import static junit.framework.Assert.assertTrue;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.util.List;
 
-import org.junit.Test;
+import static junit.framework.Assert.assertTrue;
 
 public class HttpPutRequestTest extends HttpServerTest {
 
@@ -49,12 +49,12 @@ public class HttpPutRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("PUT " + HttpServerTest.URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
 
         String[] expectedOutput = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
+                ""
         };
 
         assertResponse(outputStream, expectedOutput);
@@ -63,8 +63,8 @@ public class HttpPutRequestTest extends HttpServerTest {
         BufferedReader reader = null;
         try {
             String[] expectedInputToServeMethodViaFile = {
-                "BodyData 1",
-                "Line 2"
+                    "BodyData 1",
+                    "Line 2"
             };
             reader = new BufferedReader(new FileReader(this.testServer.files.get("content")));
             List<String> lines = readLinesFromFile(reader);

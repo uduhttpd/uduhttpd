@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.websockets;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,18 +33,6 @@ package org.nanohttpd.junit.protocols.websockets;
  * #L%
  */
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,13 +43,18 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
-import org.nanohttpd.protocols.websockets.CloseCode;
-import org.nanohttpd.protocols.websockets.NanoWSD;
-import org.nanohttpd.protocols.websockets.OpCode;
-import org.nanohttpd.protocols.websockets.WebSocket;
-import org.nanohttpd.protocols.websockets.WebSocketFrame;
+import org.nanohttpd.protocols.websockets.*;
 import org.nanohttpd.util.Handler;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static junit.framework.Assert.*;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -232,15 +225,15 @@ public class WebSocketResponseHandlerTest {
         Assert.assertEquals("Header byte incorrect.", -127, writtenBytes[0]);
         Assert.assertEquals("Payload length byte incorrect.", 7, writtenBytes[1]);
         Assert.assertArrayEquals(new byte[]{
-            -127,
-            7,
-            112,
-            97,
-            121,
-            108,
-            111,
-            97,
-            100
+                -127,
+                7,
+                112,
+                97,
+                121,
+                108,
+                111,
+                97,
+                100
         }, writtenBytes);
     }
 
@@ -249,10 +242,10 @@ public class WebSocketResponseHandlerTest {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Binary, true, "payload".getBytes());
         webSocketFrame.setMaskingKey(new byte[]{
-            12,
-            45,
-            33,
-            32
+                12,
+                45,
+                33,
+                32
         });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
@@ -260,19 +253,19 @@ public class WebSocketResponseHandlerTest {
         Assert.assertEquals("Header byte incorrect.", -126, writtenBytes[0]);
         Assert.assertEquals("Payload length byte incorrect.", -121, writtenBytes[1]);
         Assert.assertArrayEquals(new byte[]{
-            -126,
-            -121,
-            12,
-            45,
-            33,
-            32,
-            124,
-            76,
-            88,
-            76,
-            99,
-            76,
-            69
+                -126,
+                -121,
+                12,
+                45,
+                33,
+                32,
+                124,
+                76,
+                88,
+                76,
+                99,
+                76,
+                69
         }, writtenBytes);
     }
 
@@ -285,13 +278,13 @@ public class WebSocketResponseHandlerTest {
         Assert.assertEquals(261, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            126,
-            1,
-            1
+                126,
+                1,
+                1
         }, new byte[]{
-            writtenBytes[1],
-            writtenBytes[2],
-            writtenBytes[3]
+                writtenBytes[1],
+                writtenBytes[2],
+                writtenBytes[3]
         });
     }
 
@@ -300,23 +293,23 @@ public class WebSocketResponseHandlerTest {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, false, new byte[257]);
         webSocketFrame.setMaskingKey(new byte[]{
-            19,
-            25,
-            79,
-            11
+                19,
+                25,
+                79,
+                11
         });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(265, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", 9, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            -2,
-            1,
-            1
+                -2,
+                1,
+                1
         }, new byte[]{
-            writtenBytes[1],
-            writtenBytes[2],
-            writtenBytes[3]
+                writtenBytes[1],
+                writtenBytes[2],
+                writtenBytes[3]
         });
     }
 
@@ -329,15 +322,15 @@ public class WebSocketResponseHandlerTest {
         Assert.assertEquals(65546, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            127,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0
+                127,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
         }, Arrays.copyOfRange(writtenBytes, 1, 10));
     }
 }

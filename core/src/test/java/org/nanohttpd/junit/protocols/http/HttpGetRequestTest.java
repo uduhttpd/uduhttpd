@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,17 +33,14 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-import org.junit.Test;
-import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.Response;
+import static org.junit.Assert.*;
 
 public class HttpGetRequestTest extends HttpServerTest {
 
@@ -127,12 +124,12 @@ public class HttpGetRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
+                ""
         };
 
         assertResponse(outputStream, expected);
@@ -182,13 +179,13 @@ public class HttpGetRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 8",
-            "",
-            responseBody
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 8",
+                "",
+                responseBody
         };
 
         assertResponse(outputStream, expected);
@@ -253,9 +250,9 @@ public class HttpGetRequestTest extends HttpServerTest {
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         String[] parametersAsArray = this.testServer.decodedParamters.get("foo").toArray(new String[0]);
         String[] expected = new String[]{
-            "bar baz",
-            "bar?",
-            "bar&"
+                "bar baz",
+                "bar?",
+                "bar&"
         };
         assertArrayEquals("Repeated parameter not decoded correctly", expected, parametersAsArray);
     }

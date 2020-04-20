@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,15 +33,15 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
-import static junit.framework.Assert.fail;
+import org.junit.Test;
+import org.nanohttpd.protocols.http.HTTPSessionImpl;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSessionImpl;
-import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
+import static junit.framework.Assert.fail;
 
 public class HttpKeepAliveTest extends HttpServerTest {
 
@@ -51,12 +51,12 @@ public class HttpKeepAliveTest extends HttpServerTest {
     public void testManyGetRequests() throws Exception {
         String request = "GET " + HttpServerTest.URI + " HTTP/1.1\r\n\r\n";
         String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
+                ""
         };
         testManyRequests(request, expected);
     }
@@ -66,12 +66,12 @@ public class HttpKeepAliveTest extends HttpServerTest {
         String data = "BodyData 1\nLine 2";
         String request = "PUT " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: " + data.length() + "\r\n\r\n" + data;
         String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
+                ""
         };
         testManyRequests(request, expected);
     }
@@ -80,11 +80,9 @@ public class HttpKeepAliveTest extends HttpServerTest {
      * Issue the given request many times to check whether an error occurs. For
      * this test, a small stack size is used, since a stack overflow is among
      * the possible errors.
-     * 
-     * @param request
-     *            The request to issue
-     * @param expected
-     *            The expected response
+     *
+     * @param request  The request to issue
+     * @param expected The expected response
      */
     public void testManyRequests(final String request, final String[] expected) throws Exception {
         Runnable r = new Runnable() {

@@ -8,18 +8,18 @@ package org.nanohttpd.junit.router;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,25 +33,9 @@ package org.nanohttpd.junit.router;
  * #L%
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.AfterClass;
@@ -60,14 +44,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
-import org.nanohttpd.router.RouterNanoHTTPD.DefaultRoutePrioritizer;
-import org.nanohttpd.router.RouterNanoHTTPD.GeneralHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.InsertionOrderRoutePrioritizer;
-import org.nanohttpd.router.RouterNanoHTTPD.NotImplementedHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.ProvidedPriorityRoutePrioritizer;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResource;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResponder;
-import org.nanohttpd.router.RouterNanoHTTPD.UriRouter;
+import org.nanohttpd.router.RouterNanoHTTPD.*;
+
+import java.io.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TestNanolets {
 

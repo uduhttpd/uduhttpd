@@ -39,7 +39,6 @@ import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.FixedStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.tempfiles.TempFile;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 

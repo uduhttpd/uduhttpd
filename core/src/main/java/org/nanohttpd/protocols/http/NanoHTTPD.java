@@ -8,18 +8,18 @@ package org.nanohttpd.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,6 +33,20 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.StatusCode;
+import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
+import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
+import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
+import org.nanohttpd.protocols.http.threading.AsyncRunner;
+import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
+import org.nanohttpd.util.Factory;
+import org.nanohttpd.util.FactoryThrowing;
+import org.nanohttpd.util.Handler;
+
+import javax.net.ssl.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,35 +56,10 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.StatusCode;
-import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
-import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
-import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
-import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
-import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
-import org.nanohttpd.protocols.http.threading.AsyncRunner;
-import org.nanohttpd.util.Factory;
-import org.nanohttpd.util.FactoryThrowing;
-import org.nanohttpd.util.Handler;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -204,8 +193,8 @@ public abstract class NanoHTTPD {
     }
 
     @SuppressWarnings({
-        "unchecked",
-        "rawtypes"
+            "unchecked",
+            "rawtypes"
     })
     private static void loadMimeTypes(Map<String, String> result, String resourceName) {
         try {
@@ -227,7 +216,9 @@ public abstract class NanoHTTPD {
         } catch (IOException e) {
             LOG.log(Level.INFO, "no mime types available at " + resourceName);
         }
-    };
+    }
+
+    ;
 
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
@@ -285,9 +276,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Get MIME type from file name extension, if possible
-     * 
-     * @param uri
-     *            the string representing a file
+     *
+     * @param uri the string representing a file
      * @return the connected mime/type
      */
     public static String getMimeTypeForFile(String uri) {
@@ -397,11 +387,9 @@ public abstract class NanoHTTPD {
     /**
      * create a instance of the client handler, subclasses can return a subclass
      * of the ClientHandler.
-     * 
-     * @param finalAccept
-     *            the socket the cleint is connected to
-     * @param inputStream
-     *            the input stream
+     *
+     * @param finalAccept the socket the cleint is connected to
+     * @param inputStream the input stream
      * @return the client handler
      */
     protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
@@ -411,9 +399,8 @@ public abstract class NanoHTTPD {
     /**
      * Instantiate the server runnable, can be overwritten by subclasses to
      * provide a subclass of the ServerRunnable.
-     * 
-     * @param timeout
-     *            the socet timeout to use.
+     *
+     * @param timeout the socet timeout to use.
      * @return the server runnable.
      */
     protected ServerRunnable createServerRunnable(final int timeout) {
@@ -424,12 +411,11 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     * 
-     * @param parms
-     *            original <b>NanoHTTPD</b> parameters values, as passed to the
-     *            <code>serve()</code> method.
+     *
+     * @param parms original <b>NanoHTTPD</b> parameters values, as passed to the
+     *              <code>serve()</code> method.
      * @return a map of <code>String</code> (parameter name) to
-     *         <code>List&lt;String&gt;</code> (a list of the values supplied).
+     * <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected static Map<String, List<String>> decodeParameters(Map<String, String> parms) {
         return decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
@@ -442,11 +428,10 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     * 
-     * @param queryString
-     *            a query string pulled from the URL.
+     *
+     * @param queryString a query string pulled from the URL.
      * @return a map of <code>String</code> (parameter name) to
-     *         <code>List&lt;String&gt;</code> (a list of the values supplied).
+     * <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected static Map<String, List<String>> decodeParameters(String queryString) {
         Map<String, List<String>> parms = new HashMap<String, List<String>>();
@@ -470,11 +455,10 @@ public abstract class NanoHTTPD {
 
     /**
      * Decode percent encoded <code>String</code> values.
-     * 
-     * @param str
-     *            the percent encoded <code>String</code>
+     *
+     * @param str the percent encoded <code>String</code>
      * @return expanded form of the input, for example "foo%20bar" becomes
-     *         "foo bar"
+     * "foo bar"
      */
     public static String decodePercent(String str) {
         String decoded = null;
@@ -522,9 +506,8 @@ public abstract class NanoHTTPD {
      * sure there is a response to every request. You are not supposed to call
      * or override this method in any circumstances. But no one will stop you if
      * you do. I'm a Javadoc, not Code Police.
-     * 
-     * @param session
-     *            the incoming session
+     *
+     * @param session the incoming session
      * @return a response to the incoming session
      */
     public Response handle(HTTPSession session) {
@@ -541,9 +524,8 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
-     * 
-     * @param session
-     *            The HTTP session
+     *
+     * @param session The HTTP session
      * @return HTTP response, see class Response for details
      */
     @Deprecated
@@ -553,9 +535,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for asynchronously executing requests.
-     * 
-     * @param asyncRunner
-     *            new strategy for handling threads.
+     *
+     * @param asyncRunner new strategy for handling threads.
      */
     public void setAsyncRunner(AsyncRunner asyncRunner) {
         this.asyncRunner = asyncRunner;
@@ -563,9 +544,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
-     * 
-     * @param tempFileManagerFactory
-     *            new strategy for handling temp files.
+     *
+     * @param tempFileManagerFactory new strategy for handling temp files.
      */
     public void setTempFileManagerFactory(Factory<TempFileManager> tempFileManagerFactory) {
         this.tempFileManagerFactory = tempFileManagerFactory;
@@ -573,9 +553,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Start the server.
-     * 
-     * @throws IOException
-     *             if the socket is in use.
+     *
+     * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
         start(NanoHTTPD.SOCKET_READ_TIMEOUT);
@@ -590,13 +569,10 @@ public abstract class NanoHTTPD {
 
     /**
      * Start the server.
-     * 
-     * @param timeout
-     *            timeout to use for socket connections.
-     * @param daemon
-     *            start the thread daemon or not.
-     * @throws IOException
-     *             if the socket is in use.
+     *
+     * @param timeout timeout to use for socket connections.
+     * @param daemon  start the thread daemon or not.
+     * @throws IOException if the socket is in use.
      */
     public void start(final int timeout, boolean daemon) throws IOException {
         this.myServerSocket = this.getServerSocketFactory().create();

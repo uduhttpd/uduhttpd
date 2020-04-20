@@ -8,18 +8,18 @@ package org.nanohttpd.junit.router;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -39,20 +39,15 @@ package org.nanohttpd.junit.router;
  * Read the source. Everything is there.
  */
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.response.FixedStatusCode;
-import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.UndefinedStatusCode;
+import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
 import org.nanohttpd.util.ServerRunner;
+
+import java.io.*;
+import java.util.Map;
 
 public class AppNanolets extends RouterNanoHTTPD {
 
@@ -152,14 +147,14 @@ public class AppNanolets extends RouterNanoHTTPD {
         super.addMappings();
         addRoute("/user", UserHandler.class);
         addRoute("/user", UserHandler.class); // add it twice to execute the
-                                              // priority == priority case
+        // priority == priority case
         addRoute("/user/help", GeneralHandler.class);
         addRoute("/user/:id", UserHandler.class);
         addRoute("/general/:param1/:param2", GeneralHandler.class);
         addRoute("/photos/:customer_id/:photo_id", null);
         addRoute("/test", String.class);
         addRoute("/interface", UriResponder.class); // this will cause an error
-                                                    // when called
+        // when called
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
@@ -168,7 +163,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     /**
      * Main entry point
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {

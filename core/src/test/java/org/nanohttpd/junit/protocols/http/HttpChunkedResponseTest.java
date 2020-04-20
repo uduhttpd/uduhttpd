@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,13 +33,12 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.Response;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
-
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.StatusCode;
 
 public class HttpChunkedResponseTest extends HttpServerTest {
 
@@ -66,26 +65,26 @@ public class HttpChunkedResponseTest extends HttpServerTest {
     @org.junit.Test
     public void thatChunkedContentIsChunked() throws Exception {
         PipedInputStream pipedInputStream = new ChunkedInputStream(new String[]{
-            "some",
-            "thing which is longer than sixteen characters",
-            "whee!",
-            ""
+                "some",
+                "thing which is longer than sixteen characters",
+                "whee!",
+                ""
         });
         String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: what/ever",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Transfer-Encoding: chunked",
-            "",
-            "4",
-            "some",
-            "2d",
-            "thing which is longer than sixteen characters",
-            "5",
-            "whee!",
-            "0",
-            ""
+                "HTTP/1.1 200 OK",
+                "Content-Type: what/ever",
+                "Date: .*",
+                "Connection: keep-alive",
+                "Transfer-Encoding: chunked",
+                "",
+                "4",
+                "some",
+                "2d",
+                "thing which is longer than sixteen characters",
+                "5",
+                "whee!",
+                "0",
+                ""
         };
         this.testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "what/ever", pipedInputStream);
         this.testServer.response.setChunkedTransfer(true);

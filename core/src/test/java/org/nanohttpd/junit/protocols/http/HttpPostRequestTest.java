@@ -8,18 +8,18 @@ package org.nanohttpd.junit.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,7 +33,7 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class HttpPostRequestTest extends HttpServerTest {
 
@@ -62,13 +62,11 @@ public class HttpPostRequestTest extends HttpServerTest {
 
     /**
      * contains common preparation steps for testing POST with Multipart Form
-     * 
-     * @param fileName
-     *            Name of file to be uploaded
-     * @param fileContent
-     *            Content of file to be uploaded
+     *
+     * @param fileName    Name of file to be uploaded
+     * @param fileContent Content of file to be uploaded
      * @return input String with POST request complete information including
-     *         header, length and content
+     * header, length and content
      */
     private String preparePostWithMultipartForm(String fileName, String fileContent) {
         String divider = UUID.randomUUID().toString();
@@ -97,7 +95,7 @@ public class HttpPostRequestTest extends HttpServerTest {
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
-            fileContent
+                fileContent
         }, lines);
     }
 
@@ -221,7 +219,7 @@ public class HttpPostRequestTest extends HttpServerTest {
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
-            fileContent
+                fileContent
         }, lines);
     }
 
@@ -255,7 +253,7 @@ public class HttpPostRequestTest extends HttpServerTest {
         BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
         List<String> lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
-            fileContent
+                fileContent
         }, lines);
         String fileName2 = this.testServer.files.get(HttpPostRequestTest.FIELD2);
         int testNumber = 0;
@@ -266,7 +264,7 @@ public class HttpPostRequestTest extends HttpServerTest {
         reader = new BufferedReader(new FileReader(fileName2));
         lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
-            file2Content
+                file2Content
         }, lines);
 
     }
