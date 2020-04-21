@@ -34,7 +34,7 @@ package org.nanohttpd.webserver;
  */
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.ByteArrayInputStream;
@@ -50,7 +50,7 @@ public class InternalRewrite extends Response {
     private final Map<String, String> headers;
 
     public InternalRewrite(Map<String, String> headers, String uri) {
-        super(FixedStatusCode.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(new byte[0]), 0);
+        super(DefaultStatusCode.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(new byte[0]), 0);
         this.headers = headers;
         this.uri = uri;
     }

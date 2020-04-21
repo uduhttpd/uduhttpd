@@ -37,7 +37,7 @@ import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.tempfiles.TempFile;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
@@ -122,14 +122,14 @@ public class HTTPSessionImpl implements HTTPSession {
 
             StringTokenizer st = new StringTokenizer(inLine);
             if (!st.hasMoreTokens()) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET" + " " +
+                throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET" + " " +
                         "/example/file.html");
             }
 
             pre.put("method", st.nextToken());
 
             if (!st.hasMoreTokens()) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET" + " " +
+                throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET" + " " +
                         "/example/file.html");
             }
 
@@ -165,7 +165,7 @@ public class HTTPSessionImpl implements HTTPSession {
 
             pre.put("uri", uri);
         } catch (IOException e) {
-            throw new ResponseException(FixedStatusCode.INTERNAL_ERROR,
+            throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR,
                     "SERVER INTERNAL ERROR: IOException: " + e.getMessage(), e);
         }
     }
@@ -179,7 +179,7 @@ public class HTTPSessionImpl implements HTTPSession {
         try {
             int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
             if (boundaryIdxs.length < 2) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is multipart/" +
+                throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is multipart/" +
                         "form-data but contains less than two boundary strings.");
             }
 
@@ -188,16 +188,15 @@ public class HTTPSessionImpl implements HTTPSession {
                 fbuf.position(boundaryIdxs[boundaryIdx]);
                 int len = Math.min(fbuf.remaining(), MAX_HEADER_SIZE);
                 fbuf.get(partHeaderBuff, 0, len);
-                BufferedReader in =
-                        new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len),
-                                Charset.forName(contentType.getEncoding())), len);
+                BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(
+                        partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
 
                 int headerLines = 0;
                 // First line is boundary string
                 String mpline = in.readLine();
                 headerLines++;
                 if (mpline == null || !mpline.contains(contentType.getBoundary())) {
-                    throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is " +
+                    throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is " +
                             "multipart/form-data but chunk does not start with boundary.");
                 }
 
@@ -220,7 +219,7 @@ public class HTTPSessionImpl implements HTTPSession {
                                 // files uploaded using the same field Id
                                 if (!fileName.isEmpty()) {
                                     if (pcount > 0)
-                                        partName = partName + String.valueOf(pcount++);
+                                        partName = partName + pcount++;
                                     else
                                         pcount++;
                                 }
@@ -240,7 +239,7 @@ public class HTTPSessionImpl implements HTTPSession {
                 }
                 // Read the part data
                 if (partHeaderLength >= len - 4) {
-                    throw new ResponseException(FixedStatusCode.INTERNAL_ERROR, "Multipart header size exceeds " +
+                    throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR, "Multipart header size exceeds " +
                             "MAX_HEADER_SIZE.");
                 }
                 int partDataStart = boundaryIdxs[boundaryIdx] + partHeaderLength;
@@ -278,7 +277,7 @@ public class HTTPSessionImpl implements HTTPSession {
         } catch (ResponseException re) {
             throw re;
         } catch (Exception e) {
-            throw new ResponseException(FixedStatusCode.INTERNAL_ERROR, e.toString());
+            throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR, e.toString());
         }
     }
 
@@ -390,7 +389,7 @@ public class HTTPSessionImpl implements HTTPSession {
 
             this.method = Method.lookup(pre.get("method"));
             if (this.method == null) {
-                throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb "
+                throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb "
                         + pre.get("method") + " unhandled.");
             }
 
@@ -412,7 +411,7 @@ public class HTTPSessionImpl implements HTTPSession {
             // (this.inputStream.totalRead() - pos_before_serve))
 
             if (r == null) {
-                throw new ResponseException(FixedStatusCode.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() " +
+                throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() " +
                         "returned a null response.");
             } else {
                 String acceptEncoding = this.headers.get("accept-encoding");
@@ -435,12 +434,12 @@ public class HTTPSessionImpl implements HTTPSession {
             // exception up the call stack.
             throw e;
         } catch (SSLException e) {
-            Response resp = Response.newFixedLengthResponse(FixedStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+            Response resp = Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                     "SSL PROTOCOL FAILURE: " + e.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
         } catch (IOException ioe) {
-            Response resp = Response.newFixedLengthResponse(FixedStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+            Response resp = Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                     "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
@@ -515,8 +514,7 @@ public class HTTPSessionImpl implements HTTPSession {
             System.arraycopy(search_window, search_window.length - boundary.length, search_window, 0, boundary.length);
 
             // Refill search_window
-            new_bytes = search_window.length - boundary.length;
-            new_bytes = (b.remaining() < new_bytes) ? b.remaining() : new_bytes;
+            new_bytes = Math.min(b.remaining(), search_window.length - boundary.length);
             b.get(search_window, boundary.length, new_bytes);
         } while (new_bytes > 0);
         return res;
@@ -635,7 +633,7 @@ public class HTTPSessionImpl implements HTTPSession {
                 if (contentType.isMultipart()) {
                     String boundary = contentType.getBoundary();
                     if (boundary == null) {
-                        throw new ResponseException(FixedStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is "
+                        throw new ResponseException(DefaultStatusCode.BAD_REQUEST, "BAD REQUEST: Content type is "
                                 + "multipart/form-data but boundary missing. Usage: GET /example/file.html");
                     }
                     decodeMultipartFormData(contentType, fbuf, this.parms, files);

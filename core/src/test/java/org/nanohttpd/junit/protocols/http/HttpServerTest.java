@@ -287,7 +287,7 @@ public class HttpServerTest {
                     responseMsg = e.getMessage();
                 }
 
-                return Response.newFixedLengthResponse(responseMsg.toString());
+                return Response.newFixedLengthResponse(responseMsg);
             }
         };
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
@@ -309,7 +309,7 @@ public class HttpServerTest {
 
         if (entity != null) {
             InputStream instream = entity.getContent();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
             String line = reader.readLine();
             assertNotNull(line, "Invalid server reponse");
             assertEquals("Server file check failed: " + line, "pass", line);

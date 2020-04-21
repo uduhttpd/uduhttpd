@@ -47,6 +47,7 @@ import org.nanohttpd.webserver.SimpleWebServer;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Matthieu Brouillard [matthieu@brouillard.fr]
@@ -106,11 +107,11 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
         HttpGet httpget = new HttpGet("http://localhost:9090/testdir/test.html");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
 
         Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
         Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: *", "*", response.getLastHeader("Access-Control-Allow-Origin").getValue());
-        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
+        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n<h1>it works</h1>\n</body>\n</html>", string);
         response.close();
     }
 

@@ -39,12 +39,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 public class WebSocketFrame {
 
-    public static final Charset TEXT_CHARSET = Charset.forName("UTF-8");
+    public static final Charset TEXT_CHARSET = StandardCharsets.UTF_8;
 
     public static String binary2Text(byte[] payload) throws CharacterCodingException {
         return new String(payload, WebSocketFrame.TEXT_CHARSET);
@@ -197,7 +198,7 @@ public class WebSocketFrame {
             if (getOpCode() == OpCode.Text) {
                 String text = getTextPayload();
                 if (text.length() > 100) {
-                    sb.append(text.substring(0, 100)).append("...");
+                    sb.append(text, 0, 100).append("...");
                 } else {
                     sb.append(text);
                 }

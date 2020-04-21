@@ -45,9 +45,9 @@ import java.net.ServerSocket;
  */
 public class SecureServerSocketFactory implements FactoryThrowing<ServerSocket, IOException> {
 
-    private SSLServerSocketFactory sslServerSocketFactory;
+    private final SSLServerSocketFactory sslServerSocketFactory;
 
-    private String[] sslProtocols;
+    private final String[] sslProtocols;
 
     public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
         this.sslServerSocketFactory = sslServerSocketFactory;

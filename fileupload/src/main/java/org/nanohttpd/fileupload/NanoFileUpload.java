@@ -46,51 +46,8 @@ import java.util.Map;
  * @author victor & ritchieGitHub
  */
 public class NanoFileUpload extends FileUpload {
-
-    public static class NanoHttpdContext implements UploadContext {
-
-        private HTTPSession session;
-
-        public NanoHttpdContext(HTTPSession session) {
-            this.session = session;
-        }
-
-        @Override
-        public long contentLength() {
-            long size;
-            try {
-                String cl1 = session.getHeaders().get("content-length");
-                size = Long.parseLong(cl1);
-            } catch (NumberFormatException var4) {
-                size = -1L;
-            }
-
-            return size;
-        }
-
-        @Override
-        public String getCharacterEncoding() {
-            return "UTF-8";
-        }
-
-        @Override
-        public String getContentType() {
-            return this.session.getHeaders().get("content-type");
-        }
-
-        @Override
-        public int getContentLength() {
-            return (int) contentLength();
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return session.getInputStream();
-        }
-    }
-
-    public static final boolean isMultipartContent(HTTPSession session) {
-        return session.getMethod() == Method.POST && FileUploadBase.isMultipartContent(new NanoHttpdContext(session));
+    public static boolean isMultipartContent(HTTPSession session) {
+        return session.getMethod() == Method.POST && FileUploadBase.isMultipartContent(new DefaultUploadContext(session));
     }
 
     public NanoFileUpload(FileItemFactory fileItemFactory) {
@@ -98,15 +55,14 @@ public class NanoFileUpload extends FileUpload {
     }
 
     public List<FileItem> parseRequest(HTTPSession session) throws FileUploadException {
-        return this.parseRequest(new NanoHttpdContext(session));
+        return this.parseRequest(new DefaultUploadContext(session));
     }
 
     public Map<String, List<FileItem>> parseParameterMap(HTTPSession session) throws FileUploadException {
-        return this.parseParameterMap(new NanoHttpdContext(session));
+        return this.parseParameterMap(new DefaultUploadContext(session));
     }
 
     public FileItemIterator getItemIterator(HTTPSession session) throws FileUploadException, IOException {
-        return super.getItemIterator(new NanoHttpdContext(session));
+        return super.getItemIterator(new DefaultUploadContext(session));
     }
-
 }

@@ -41,7 +41,7 @@ import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.DataInputStream;
@@ -70,7 +70,7 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
                 body = new byte[contentLength];
                 dataInputStream.readFully(body, 0, contentLength);
             } catch (IOException e) {
-                return Response.newFixedLengthResponse(FixedStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
+                return Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
             }
 
             String response = String.valueOf(method) + ':' + new String(body);

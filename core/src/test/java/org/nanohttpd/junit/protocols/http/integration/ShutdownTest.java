@@ -74,7 +74,7 @@ public class ShutdownTest {
         }
     }
 
-    private void makeRequest() throws MalformedURLException, IOException {
+    private void makeRequest() throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:8092/").openConnection();
         // Keep-alive seems to be on by default, but just in case that changes.
         connection.addRequestProperty("Connection", "keep-alive");

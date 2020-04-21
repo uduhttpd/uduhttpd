@@ -41,7 +41,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.websockets.*;
 import org.nanohttpd.util.Handler;
@@ -163,7 +163,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(FixedStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(DefaultStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(FixedStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(DefaultStatusCode.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test

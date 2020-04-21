@@ -35,7 +35,7 @@ package org.nanohttpd.protocols.websockets;
 
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.util.Handler;
 
@@ -159,12 +159,12 @@ public abstract class NanoWSD extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                return Response.newFixedLengthResponse(FixedStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                return Response.newFixedLengthResponse(DefaultStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                         "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
             }
 
             if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
-                return Response.newFixedLengthResponse(FixedStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                return Response.newFixedLengthResponse(DefaultStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                         "Missing Websocket-Key");
             }
 
@@ -173,7 +173,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return Response.newFixedLengthResponse(FixedStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                return Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                         "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 

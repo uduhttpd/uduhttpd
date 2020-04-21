@@ -37,7 +37,7 @@ package org.nanohttpd.protocols.http.response;
  * This enum class defines the known HTTP status codes at a given time making
  * them easily accessible. If a status code is not present, you can defin
  */
-public enum FixedStatusCode implements StatusCode {
+public enum DefaultStatusCode implements StatusCode {
     SWITCH_PROTOCOL(101, "Switching Protocols"),
 
     OK(200, "OK"),
@@ -86,7 +86,7 @@ public enum FixedStatusCode implements StatusCode {
 
     private final String mDescription;
 
-    FixedStatusCode(int statusCode, String description) {
+    DefaultStatusCode(int statusCode, String description) {
         mStatusCode = statusCode;
         mDescription = description;
     }

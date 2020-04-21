@@ -34,7 +34,6 @@ package org.nanohttpd.junit.router;
  */
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -42,7 +41,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
 import org.nanohttpd.router.RouterNanoHTTPD.*;
 
@@ -105,7 +104,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/user/blabla");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals(
                 "<html><body>User handler. Method: GET<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
@@ -113,7 +112,7 @@ public class TestNanolets {
         HttpPost httppost = new HttpPost("http://localhost:9090/user/blabla");
         response = httpclient.execute(httppost);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals(
                 "<html><body>User handler. Method: POST<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
@@ -121,7 +120,7 @@ public class TestNanolets {
         HttpPut httpgput = new HttpPut("http://localhost:9090/user/blabla");
         response = httpclient.execute(httpgput);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals(
                 "<html><body>User handler. Method: PUT<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
@@ -129,18 +128,18 @@ public class TestNanolets {
         HttpDelete httpdelete = new HttpDelete("http://localhost:9090/user/blabla");
         response = httpclient.execute(httpdelete);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals(
                 "<html><body>User handler. Method: DELETE<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
     }
 
     @Test
-    public void doEncodedRequest() throws ClientProtocolException, IOException {
+    public void doEncodedRequest() throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpget = new HttpGet("http://localhost:9090/general/param%201/param%202");
         CloseableHttpResponse response = httpclient.execute(httpget);
-        Assert.assertEquals(FixedStatusCode.OK.getStatusCode(), response.getStatusLine().getStatusCode());
+        Assert.assertEquals(DefaultStatusCode.OK.getStatusCode(), response.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -150,7 +149,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/test");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("Return: java.lang.String.toString() -> ", string);
         response.close();
     }
@@ -162,7 +161,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/interface");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("Error: java.lang.InstantiationException : org.nanohttpd.router.RouterNanoHTTPD$UriResponder", string);
         response.close();
     }
@@ -174,7 +173,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/toBeDeleted");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h3>Error 404: the requested page doesn't exist.</h3></body></html>", string);
         response.close();
     }
@@ -186,7 +185,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/user/help");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h1>Url: /user/help</h1><br><p>no params in url</p><br>", string);
         response.close();
     }
@@ -198,7 +197,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/stream");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("a stream of data ;-)", string);
         response.close();
     }
@@ -243,7 +242,7 @@ public class TestNanolets {
 
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h1>Url: /general/value1/value2</h1><br><p>Param 'param3' = value3</p><p>Param 'param4' = value4</p>", string);
         response.close();
     }
@@ -255,7 +254,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/index.html");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h2>Hello world!</h3></body></html>", string);
         response.close();
     }
@@ -267,7 +266,7 @@ public class TestNanolets {
         HttpGet httpget = new HttpGet("http://localhost:9090/photos/abc/def");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h2>The uri is mapped in the router, but no handler is specified. <br> Status: Not implemented!</h3></body></html>", string);
         response.close();
     }
@@ -286,7 +285,7 @@ public class TestNanolets {
         HttpTrace httphead = new HttpTrace("http://localhost:9090/index.html");
         CloseableHttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h2>Hello world!</h3></body></html>", string);
         response.close();
     }
@@ -355,13 +354,13 @@ public class TestNanolets {
         httphead = new HttpTrace("http://localhost:9090/browse/dir/");
         response = httpclient.execute(httphead);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("<html><body><h3>just an index page</h3></body></html>", string);
         response.close();
 
         httphead = new HttpTrace("http://localhost:9090/browse/exception.html");
         response = httpclient.execute(httphead);
-        Assert.assertEquals(FixedStatusCode.REQUEST_TIMEOUT.getStatusCode(), response.getStatusLine().getStatusCode());
+        Assert.assertEquals(DefaultStatusCode.REQUEST_TIMEOUT.getStatusCode(), response.getStatusLine().getStatusCode());
         entity = response.getEntity();
         string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertEquals("", string);
@@ -377,19 +376,19 @@ public class TestNanolets {
 
     @Test
     public void testGeneralHandlerGetStatus() {
-        Assert.assertEquals("GeneralHandler#getStatus should return OK status", FixedStatusCode.OK,
+        Assert.assertEquals("GeneralHandler#getStatus should return OK status", DefaultStatusCode.OK,
                 new RouterNanoHTTPD.GeneralHandler().getStatus());
     }
 
     @Test
     public void testStaticPageHandlerGetStatus() {
-        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", FixedStatusCode.OK,
+        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", DefaultStatusCode.OK,
                 new RouterNanoHTTPD.StaticPageHandler().getStatus());
     }
 
     @Test
     public void testError404UriHandlerGetStatus() {
-        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", FixedStatusCode.NOT_FOUND,
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", DefaultStatusCode.NOT_FOUND,
                 new RouterNanoHTTPD.Error404UriHandler().getStatus());
     }
 
@@ -401,13 +400,13 @@ public class TestNanolets {
 
     @Test
     public void testNotImplementedHandlerGetStatus() {
-        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", FixedStatusCode.OK,
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", DefaultStatusCode.OK,
                 new RouterNanoHTTPD.NotImplementedHandler().getStatus());
     }
 
     @Test
     public void testIndexHandlerGetStatus() {
-        Assert.assertEquals("IndexHandler#getStatus should return OK status", FixedStatusCode.OK,
+        Assert.assertEquals("IndexHandler#getStatus should return OK status", DefaultStatusCode.OK,
                 new RouterNanoHTTPD.IndexHandler().getStatus());
     }
 
@@ -446,7 +445,7 @@ public class TestNanolets {
         routePrioritizer.addRoute("/user", 100, handler1);
         routePrioritizer.addRoute("/user", 100, handler2);
         routePrioritizer.addRoute("/user", 100, handler3);
-        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        List<UriResource> prioritizedResources = new ArrayList<>();
         prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
 
         for (int i = 0; i < classes.size(); i++) {

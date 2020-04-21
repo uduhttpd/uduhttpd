@@ -50,11 +50,9 @@ import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
-import java.net.URI;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -101,10 +99,10 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
             }
 
             if ("/encodingtest".equals(uri)) {
-                return Response.newFixedLengthResponse(FixedStatusCode.OK, MIME_HTML, "<html><head><title>Testé " +
+                return Response.newFixedLengthResponse(DefaultStatusCode.OK, MIME_HTML, "<html><head><title>Testé " +
                         "ça</title></head><body>Testé ça</body></html>");
             } else if ("/chin".equals(uri)) {
-                return Response.newFixedLengthResponse(FixedStatusCode.OK, "application/octet-stream", sb.toString());
+                return Response.newFixedLengthResponse(DefaultStatusCode.OK, "application/octet-stream", sb.toString());
             } else {
                 return Response.newFixedLengthResponse(sb.toString());
             }

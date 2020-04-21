@@ -58,7 +58,7 @@ public enum CloseCode {
 
     private final int code;
 
-    private CloseCode(int code) {
+    CloseCode(int code) {
         this.code = code;
     }
 

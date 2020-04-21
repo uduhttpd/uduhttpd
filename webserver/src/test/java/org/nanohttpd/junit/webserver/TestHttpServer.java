@@ -34,7 +34,6 @@ package org.nanohttpd.junit.webserver;
  */
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -45,7 +44,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.nanohttpd.webserver.SimpleWebServer;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -100,13 +103,13 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpget = new HttpGet("http://localhost:9090/index.xml");
         CloseableHttpResponse response = httpclient.execute(httpget);
-        String string = new String(readContents(response.getEntity()), "UTF-8");
+        String string = new String(readContents(response.getEntity()), StandardCharsets.UTF_8);
         Assert.assertEquals("<xml/>", string);
         response.close();
 
         httpget = new HttpGet("http://localhost:9090/testdir/testdir/different.xml");
         response = httpclient.execute(httpget);
-        string = new String(readContents(response.getEntity()), "UTF-8");
+        string = new String(readContents(response.getEntity()), StandardCharsets.UTF_8);
         Assert.assertEquals("<xml/>", string);
         response.close();
     }
@@ -117,21 +120,21 @@ public class TestHttpServer extends AbstractTestHttpServer {
         HttpGet httpget = new HttpGet("http://localhost:9090/testdir/test.html");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        String string = new String(readContents(entity), "UTF-8");
-        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
+        String string = new String(readContents(entity), StandardCharsets.UTF_8);
+        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n<h1>it works</h1>\n</body>\n</html>", string);
         response.close();
 
         httpget = new HttpGet("http://localhost:9090/");
         response = httpclient.execute(httpget);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertTrue(string.indexOf("testdir") > 0);
         response.close();
 
         httpget = new HttpGet("http://localhost:9090/testdir");
         response = httpclient.execute(httpget);
         entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
+        string = new String(readContents(entity), StandardCharsets.UTF_8);
         Assert.assertTrue(string.indexOf("test.html") > 0);
         response.close();
 
@@ -147,7 +150,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void doArgumentTest() throws InterruptedException, UnsupportedEncodingException, IOException {
+    public void doArgumentTest() throws InterruptedException, IOException {
         final String testPort = "9458";
         Thread testServer = new Thread(new Runnable() {
 
@@ -175,7 +178,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
         try {
             response = httpclient.execute(httpget);
             HttpEntity entity = response.getEntity();
-            String str = new String(readContents(entity), "UTF-8");
+            String str = new String(readContents(entity), StandardCharsets.UTF_8);
             Assert.assertTrue("The response entity didn't contain the string 'testdir'", str.indexOf("testdir") >= 0);
         } finally {
             if (response != null)
@@ -184,7 +187,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testURLContainsParentDirectory() throws ClientProtocolException, IOException {
+    public void testURLContainsParentDirectory() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -200,14 +203,14 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testIndexFileIsShownWhenURLEndsWithDirectory() throws ClientProtocolException, IOException {
+    public void testIndexFileIsShownWhenURLEndsWithDirectory() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/testdir");
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
-            String responseString = new String(readContents(entity), "UTF-8");
+            String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
             Assert.assertThat("When the URL ends with a directory, and if an index.html file is present in that directory," + " the server should respond with that file",
                     responseString, containsString("Simple index file"));
         } finally {
@@ -218,14 +221,14 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testPluginInternalRewrite() throws ClientProtocolException, IOException {
+    public void testPluginInternalRewrite() throws IOException {
         CloseableHttpResponse response = null;
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet("http://localhost:9090/rewrite/index.xml");
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
-            String responseString = new String(readContents(entity), "UTF-8");
+            String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
             Assert.assertThat("If a plugin returns an InternalRewrite from the serveFile method, the rewritten request should be served", responseString,
                     allOf(containsString("dummy"), containsString("it works")));
         } finally {
@@ -236,7 +239,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderWithStartPositionOnly() throws ClientProtocolException, IOException {
+    public void testRangeHeaderWithStartPositionOnly() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -244,15 +247,18 @@ public class TestHttpServer extends AbstractTestHttpServer {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
-            String responseString = new String(readContents(entity), "UTF-8");
-            Assert.assertThat("The data from the beginning of the file should have been skipped as specified in the 'range' header", responseString,
-                    not(containsString("<head>")));
-            Assert.assertThat("The response should contain the data from the end of the file since end position was not given in the 'range' header", responseString,
-                    containsString("</head>"));
-            Assert.assertEquals("The content length should be the length starting from the requested byte", "74", response.getHeaders("Content-Length")[0].getValue());
-            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes 10-83/84",
+            String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
+            Assert.assertThat("The data from the beginning of the file should have been skipped as specified " +
+                    "in the 'range' header", responseString, not(containsString("<head>")));
+            Assert.assertThat("The response should contain the data from the end of the file since end " +
+                    "position was not given in the 'range' header", responseString, containsString("</head>"));
+            Assert.assertEquals("The content length should be the length starting from the requested byte",
+                    "73", response.getHeaders("Content-Length")[0].getValue());
+            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets " +
+                            "based on the range served", "bytes 10-82/83",
                     response.getHeaders("Content-Range")[0].getValue());
-            Assert.assertEquals("Response status for a successful range request should be PARTIAL_CONTENT(206)", 206, response.getStatusLine().getStatusCode());
+            Assert.assertEquals("Response status for a successful range request should be PARTIAL_CONTENT(206)",
+                    206, response.getStatusLine().getStatusCode());
         } finally {
             if (response != null) {
                 response.close();
@@ -261,16 +267,18 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeStartGreaterThanFileLength() throws ClientProtocolException, IOException {
+    public void testRangeStartGreaterThanFileLength() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
             httpGet.addHeader("range", "bytes=1000-");
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
-            Assert.assertEquals("Response status for a request with 'range' header value which exceeds file length should be RANGE_NOT_SATISFIABLE(416)", 416, response
-                    .getStatusLine().getStatusCode());
-            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes */84",
+            Assert.assertEquals("Response status for a request with 'range' header value which exceeds file " +
+                            "length should be RANGE_NOT_SATISFIABLE(416)", 416,
+                    response.getStatusLine().getStatusCode());
+            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets " +
+                            "based on the range served", "bytes */83",
                     response.getHeaders("Content-Range")[0].getValue());
         } finally {
             if (response != null) {
@@ -280,7 +288,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderWithStartAndEndPosition() throws ClientProtocolException, IOException {
+    public void testRangeHeaderWithStartAndEndPosition() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -288,15 +296,20 @@ public class TestHttpServer extends AbstractTestHttpServer {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
-            String responseString = new String(readContents(entity), "UTF-8");
-            Assert.assertThat("The data from the beginning of the file should have been skipped as specified in the 'range' header", responseString,
+            String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
+            Assert.assertThat("The data from the beginning of the file should have been skipped as specified " +
+                            "in the 'range' header", responseString,
                     not(containsString("<head>")));
-            Assert.assertThat("The data from the end of the file should have been skipped as specified in the 'range' header", responseString, not(containsString("</head>")));
-            Assert.assertEquals("The 'Content-Length' should be the length from the requested start position to end position", "31",
+            Assert.assertThat("The data from the end of the file should have been skipped as specified in the " +
+                    "'range' header", responseString, not(containsString("</head>")));
+            Assert.assertEquals("The 'Content-Length' should be the length from the requested start position " +
+                            "to end position", "31",
                     response.getHeaders("Content-Length")[0].getValue());
-            Assert.assertEquals("The 'Contnet-Range' header should contain the correct lengths and offsets based on the range served", "bytes 10-40/84",
+            Assert.assertEquals("The 'Contnet-Range' header should contain the correct lengths and offsets " +
+                            "based on the range served", "bytes 10-40/83",
                     response.getHeaders("Content-Range")[0].getValue());
-            Assert.assertEquals("Response status for a successful request with 'range' header should be PARTIAL_CONTENT(206)", 206, response.getStatusLine().getStatusCode());
+            Assert.assertEquals("Response status for a successful request with 'range' header should be " +
+                    "PARTIAL_CONTENT(206)", 206, response.getStatusLine().getStatusCode());
         } finally {
             if (response != null) {
                 response.close();
@@ -305,7 +318,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testIfNoneMatchHeader() throws ClientProtocolException, IOException {
+    public void testIfNoneMatchHeader() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
@@ -322,7 +335,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void testRangeHeaderAndIfNoneMatchHeader() throws ClientProtocolException, IOException {
+    public void testRangeHeaderAndIfNoneMatchHeader() throws IOException {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");

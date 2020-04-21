@@ -50,7 +50,7 @@ import java.io.IOException;
 public class HttpSSLServerTest extends HttpServerTest {
 
     @Test
-    public void testSSLConnection() throws ClientProtocolException, IOException {
+    public void testSSLConnection() throws IOException {
         DefaultHttpClient httpclient = new DefaultHttpClient();
         HttpTrace httphead = new HttpTrace("https://localhost:9043/index.html");
         HttpResponse response = httpclient.execute(httphead);

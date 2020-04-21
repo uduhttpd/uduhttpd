@@ -43,34 +43,24 @@ import java.io.OutputStream;
  * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
  */
 public class ChunkedOutputStream extends FilterOutputStream {
+    private final byte[] singleByteArray = new byte[1];
 
     public ChunkedOutputStream(OutputStream out) {
         super(out);
     }
 
     @Override
-    public void write(int b) throws IOException {
-        byte[] data = {
-                (byte) b
-        };
-        write(data, 0, 1);
+    public synchronized void write(int b) throws IOException {
+        singleByteArray[1] = (byte) b;
+        write(singleByteArray, 0, 1);
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
-        write(b, 0, b.length);
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        if (len == 0)
-            return;
-        out.write(String.format("%x\r\n", len).getBytes());
-        out.write(b, off, len);
-        out.write("\r\n".getBytes());
+    public void write(byte[] bytes, int i, int i1) throws IOException {
+        ChunkedStreams.writeInChunks(out, bytes, i, i1);
     }
 
     public void finish() throws IOException {
-        out.write("0\r\n\r\n".getBytes());
+        out.write(ChunkedStreams.DATA_DELIMITER_FINISH);
     }
 }

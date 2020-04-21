@@ -33,7 +33,7 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
@@ -218,8 +218,6 @@ public abstract class NanoHTTPD {
         }
     }
 
-    ;
-
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
      * array of loaded KeyManagers. These objects must properly
@@ -289,15 +287,11 @@ public abstract class NanoHTTPD {
         return mime == null ? "application/octet-stream" : mime;
     }
 
-    public static final void safeClose(Object closeable) {
+    public static void safeClose(Object closeable) {
         try {
             if (closeable != null) {
                 if (closeable instanceof Closeable) {
                     ((Closeable) closeable).close();
-                } else if (closeable instanceof Socket) {
-                    ((Socket) closeable).close();
-                } else if (closeable instanceof ServerSocket) {
-                    ((ServerSocket) closeable).close();
                 } else {
                     throw new IllegalArgumentException("Unknown object to close");
                 }
@@ -530,7 +524,7 @@ public abstract class NanoHTTPD {
      */
     @Deprecated
     protected Response serve(HTTPSession session) {
-        return Response.newFixedLengthResponse(FixedStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+        return Response.newFixedLengthResponse(DefaultStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 
     /**

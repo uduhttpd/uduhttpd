@@ -34,7 +34,7 @@ package org.nanohttpd.protocols.websockets;
  */
 
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.IOException;
@@ -61,7 +61,7 @@ public abstract class WebSocket {
 
     private final HTTPSession handshakeRequest;
 
-    private final Response handshakeResponse = new Response(FixedStatusCode.SWITCH_PROTOCOL, null, null,
+    private final Response handshakeResponse = new Response(DefaultStatusCode.SWITCH_PROTOCOL, null, null,
             0) {
 
         @Override

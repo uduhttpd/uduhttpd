@@ -52,7 +52,7 @@ public enum OpCode {
 
     private final byte code;
 
-    private OpCode(int code) {
+    OpCode(int code) {
         this.code = (byte) code;
     }
 

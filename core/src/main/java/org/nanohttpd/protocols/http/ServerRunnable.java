@@ -44,7 +44,7 @@ import java.util.logging.Level;
  */
 public class ServerRunnable implements Runnable {
 
-    private NanoHTTPD httpd;
+    private final NanoHTTPD httpd;
 
     private final int timeout;
 

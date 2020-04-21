@@ -33,7 +33,7 @@ package org.nanohttpd.junit.protocols.http;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.ByteArrayOutputStream;
@@ -86,7 +86,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
                 "0",
                 ""
         };
-        this.testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "what/ever", pipedInputStream);
+        this.testServer.response = Response.newChunkedResponse(DefaultStatusCode.OK, "what/ever", pipedInputStream);
         this.testServer.response.setChunkedTransfer(true);
 
         ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.1");

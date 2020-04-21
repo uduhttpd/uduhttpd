@@ -40,7 +40,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpTrace;
@@ -57,7 +56,7 @@ import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
@@ -66,7 +65,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.util.Arrays;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,8 @@ import java.util.Map;
 public class TestNanoFileUpLoad {
 
     private static final String UPLOAD_JAVA_FILE = "src/test/java/" + TestNanoFileUpLoad.class.getName().replace('.', '/') + ".java";
+
+    private static final URL TEST_FILE1 = TestNanoFileUpLoad.class.getResource("/Smugglers 'n Caregivers 'n Loners \"Unchained\".txt");
 
     protected TestServer testServer;
 
@@ -132,20 +135,19 @@ public class TestNanoFileUpLoad {
                         files = uploader.parseParameterMap(session);
                     }
                     if ("/uploadFile2".equals(this.uri)) {
-                        files = new HashMap<String, List<FileItem>>();
+                        files = new HashMap<>();
                         List<FileItem> parseRequest = uploader.parseRequest(session);
                         files.put(parseRequest.get(0).getFieldName(), parseRequest);
                     }
                     if ("/uploadFile3".equals(this.uri)) {
-                        files = new HashMap<String, List<FileItem>>();
+                        files = new HashMap<>();
                         FileItemIterator iter = uploader.getItemIterator(session);
                         while (iter.hasNext()) {
                             FileItemStream item = iter.next();
                             final String fileName = item.getName();
-                            FileItem fileItem = uploader.getFileItemFactory().createItem(item.getFieldName(), item.getContentType(), item.isFormField(), fileName);
-                            files.put(fileItem.getFieldName(), Arrays.asList(new FileItem[]{
-                                    fileItem
-                            }));
+                            FileItem fileItem = uploader.getFileItemFactory().createItem(item.getFieldName(),
+                                    item.getContentType(), item.isFormField(), fileName);
+                            files.put(fileItem.getFieldName(), Collections.singletonList(fileItem));
                             try {
                                 Streams.copy(item.openStream(), fileItem.getOutputStream(), true);
                             } catch (Exception e) {
@@ -154,7 +156,7 @@ public class TestNanoFileUpLoad {
                         }
                     }
                 } catch (Exception e) {
-                    this.response.setStatus(FixedStatusCode.INTERNAL_ERROR);
+                    this.response.setStatus(DefaultStatusCode.INTERNAL_ERROR);
                     e.printStackTrace();
                 }
             }
@@ -187,6 +189,17 @@ public class TestNanoFileUpLoad {
     }
 
     @Test
+    public void testPostSpecialCharactersWithMultipartFormUpload() throws IOException {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpPost post = new HttpPost("http://localhost:8192/uploadFile2");
+        String testFile = URLDecoder.decode(TEST_FILE1.getFile(), "UTF-8");
+
+        executeUpload(httpclient, testFile, post);
+        FileItem file = this.testServer.files.get("upfile").get(0);
+        Assert.assertEquals(file.getName(), new File(testFile).getName());
+    }
+
+    @Test
     public void testPostWithMultipartFormUpload2() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         String textFileName = UPLOAD_JAVA_FILE;
@@ -208,7 +221,7 @@ public class TestNanoFileUpLoad {
         Assert.assertEquals(file.getSize(), new File(textFileName).length());
     }
 
-    private void executeUpload(CloseableHttpClient httpclient, String textFileName, HttpPost post) throws IOException, ClientProtocolException {
+    private void executeUpload(CloseableHttpClient httpclient, String textFileName, HttpPost post) throws IOException {
         FileBody fileBody = new FileBody(new File(textFileName), ContentType.DEFAULT_BINARY);
         StringBody stringBody1 = new StringBody("Message 1", ContentType.MULTIPART_FORM_DATA);
 
@@ -217,7 +230,7 @@ public class TestNanoFileUpLoad {
         builder.addPart("upfile", fileBody);
         builder.addPart("text1", stringBody1);
         HttpEntity entity = builder.build();
-        //
+
         post.setEntity(entity);
         HttpResponse response = httpclient.execute(post);
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());

@@ -61,7 +61,6 @@ public class JavaIOTempDirExistTest {
         Exception e = null;
         try {
             tempFile.delete();
-
         } catch (Exception ex) {
             e = ex;
         }

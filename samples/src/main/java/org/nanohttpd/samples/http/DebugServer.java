@@ -66,9 +66,9 @@ public class DebugServer extends NanoHTTPD {
         sb.append("<body>");
         sb.append("<h1>Debug Server</h1>");
 
-        sb.append("<p><blockquote><b>URI</b> = ").append(String.valueOf(session.getUri())).append("<br />");
+        sb.append("<p><blockquote><b>URI</b> = ").append(session.getUri()).append("<br />");
 
-        sb.append("<b>Method</b> = ").append(String.valueOf(session.getMethod())).append("</blockquote></p>");
+        sb.append("<b>Method</b> = ").append(session.getMethod()).append("</blockquote></p>");
 
         sb.append("<h3>Headers</h3><p><blockquote>").append(toString(session.getHeaders())).append("</blockquote></p>");
 

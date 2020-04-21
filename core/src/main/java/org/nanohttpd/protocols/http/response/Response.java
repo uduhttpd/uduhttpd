@@ -66,7 +66,7 @@ public class Response implements Closeable {
      */
     private InputStream data;
 
-    private long contentLength;
+    private final long contentLength;
 
     /**
      * Headers for the HTTP response. Use addHeader() to add lines. the
@@ -80,7 +80,6 @@ public class Response implements Closeable {
             return super.put(key, value);
         }
 
-        ;
     };
 
     /**
@@ -100,14 +99,14 @@ public class Response implements Closeable {
 
     private boolean keepAlive;
 
-    private List<String> cookieHeaders;
+    private final List<String> cookieHeaders;
 
     private GzipUsage gzipUsage = GzipUsage.DEFAULT;
 
-    private static enum GzipUsage {
+    private enum GzipUsage {
         DEFAULT,
         ALWAYS,
-        NEVER;
+        NEVER
     }
 
     /**
@@ -220,7 +219,8 @@ public class Response implements Closeable {
             if (this.status == null) {
                 throw new Error("sendResponse(): Status can't be null.");
             }
-            PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, new ContentType(this.mimeType).getEncoding())), false);
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream,
+                    new ContentType(this.mimeType).getEncoding())), false);
             pw.append("HTTP/1.1 ").append(this.status.getHttpDescription()).append(" \r\n");
             if (this.mimeType != null) {
                 printHeader(pw, "Content-Type", this.mimeType);
@@ -413,7 +413,7 @@ public class Response implements Closeable {
      * Create a text response with known length.
      */
     public static Response newFixedLengthResponse(String msg) {
-        return newFixedLengthResponse(FixedStatusCode.OK, NanoHTTPD.MIME_HTML, msg);
+        return newFixedLengthResponse(DefaultStatusCode.OK, NanoHTTPD.MIME_HTML, msg);
     }
 
     public Response setUseGzip(boolean useGzip) {

@@ -40,7 +40,7 @@ package org.nanohttpd.junit.router;
  */
 
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
@@ -86,7 +86,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
         @Override
         public StatusCode getStatus() {
-            return FixedStatusCode.OK;
+            return DefaultStatusCode.OK;
         }
 
         public Response get(UriResource uriResource, Map<String, String> urlParams, HTTPSession session) {
@@ -107,7 +107,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
         @Override
         public StatusCode getStatus() {
-            return FixedStatusCode.OK;
+            return DefaultStatusCode.OK;
         }
 
         @Override

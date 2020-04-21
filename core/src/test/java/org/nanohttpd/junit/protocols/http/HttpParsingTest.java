@@ -34,6 +34,7 @@ package org.nanohttpd.junit.protocols.http;
  */
 
 import org.junit.Test;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -43,7 +44,7 @@ public class HttpParsingTest extends HttpServerTest {
     public void testMultibyteCharacterSupport() throws Exception {
         String expected = "Chinese \u738b Letters";
         String input = "Chinese+%e7%8e%8b+Letters";
-        assertEquals(expected, this.testServer.decodePercent(input));
+        assertEquals(expected, NanoHTTPD.decodePercent(input));
     }
 
     @Test
@@ -52,12 +53,12 @@ public class HttpParsingTest extends HttpServerTest {
             String hex = Integer.toHexString(i);
             String input = "%" + hex;
             char expected = (char) i;
-            assertEquals("" + expected, this.testServer.decodePercent(input));
+            assertEquals("" + expected, NanoHTTPD.decodePercent(input));
         }
     }
 
     @Test
     public void testPlusInQueryParams() throws Exception {
-        assertEquals("foo bar", this.testServer.decodePercent("foo+bar"));
+        assertEquals("foo bar", NanoHTTPD.decodePercent("foo+bar"));
     }
 }

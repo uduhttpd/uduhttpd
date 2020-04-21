@@ -2,7 +2,7 @@ package org.nanohttpd.junit.protocols.http;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.StatusCode;
 
 import java.util.HashMap;
@@ -52,16 +52,16 @@ public class StatusCodeImplTest {
         // you
         // make the name of the enum name match the status code description.
         Map<StatusCode, String> overrideValues = new HashMap<>();
-        overrideValues.put(FixedStatusCode.INTERNAL_ERROR, "500 Internal Server Error");
-        overrideValues.put(FixedStatusCode.SWITCH_PROTOCOL, "101 Switching Protocols");
-        overrideValues.put(FixedStatusCode.OK, "200 OK");
-        overrideValues.put(FixedStatusCode.MULTI_STATUS, "207 Multi-Status");
-        overrideValues.put(FixedStatusCode.REDIRECT, "301 Moved Permanently");
-        overrideValues.put(FixedStatusCode.REDIRECT_SEE_OTHER, "303 See Other");
-        overrideValues.put(FixedStatusCode.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
-        overrideValues.put(FixedStatusCode.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
+        overrideValues.put(DefaultStatusCode.INTERNAL_ERROR, "500 Internal Server Error");
+        overrideValues.put(DefaultStatusCode.SWITCH_PROTOCOL, "101 Switching Protocols");
+        overrideValues.put(DefaultStatusCode.OK, "200 OK");
+        overrideValues.put(DefaultStatusCode.MULTI_STATUS, "207 Multi-Status");
+        overrideValues.put(DefaultStatusCode.REDIRECT, "301 Moved Permanently");
+        overrideValues.put(DefaultStatusCode.REDIRECT_SEE_OTHER, "303 See Other");
+        overrideValues.put(DefaultStatusCode.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
+        overrideValues.put(DefaultStatusCode.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
 
-        for (FixedStatusCode status : FixedStatusCode.values()) {
+        for (DefaultStatusCode status : DefaultStatusCode.values()) {
             if (overrideValues.containsKey(status)) {
                 Assert.assertEquals(overrideValues.get(status), status.getHttpDescription());
             } else {
@@ -70,7 +70,7 @@ public class StatusCodeImplTest {
         }
     }
 
-    private String getExpectedMessage(FixedStatusCode status) {
+    private String getExpectedMessage(DefaultStatusCode status) {
         String name = status.name().toLowerCase();
         String[] words = name.split("_");
         StringBuilder builder = new StringBuilder();
@@ -88,43 +88,43 @@ public class StatusCodeImplTest {
 
     @Test
     public void testLookup() throws Exception {
-        Map<StatusCode, Integer> map = new HashMap<>(FixedStatusCode.values().length);
+        Map<StatusCode, Integer> map = new HashMap<>(DefaultStatusCode.values().length);
 
-        map.put(FixedStatusCode.SWITCH_PROTOCOL, 101);
+        map.put(DefaultStatusCode.SWITCH_PROTOCOL, 101);
 
-        map.put(FixedStatusCode.OK, 200);
-        map.put(FixedStatusCode.CREATED, 201);
-        map.put(FixedStatusCode.ACCEPTED, 202);
-        map.put(FixedStatusCode.NO_CONTENT, 204);
-        map.put(FixedStatusCode.PARTIAL_CONTENT, 206);
-        map.put(FixedStatusCode.MULTI_STATUS, 207);
+        map.put(DefaultStatusCode.OK, 200);
+        map.put(DefaultStatusCode.CREATED, 201);
+        map.put(DefaultStatusCode.ACCEPTED, 202);
+        map.put(DefaultStatusCode.NO_CONTENT, 204);
+        map.put(DefaultStatusCode.PARTIAL_CONTENT, 206);
+        map.put(DefaultStatusCode.MULTI_STATUS, 207);
 
-        map.put(FixedStatusCode.REDIRECT, 301);
-        map.put(FixedStatusCode.FOUND, 302);
-        map.put(FixedStatusCode.REDIRECT_SEE_OTHER, 303);
-        map.put(FixedStatusCode.NOT_MODIFIED, 304);
-        map.put(FixedStatusCode.TEMPORARY_REDIRECT, 307);
+        map.put(DefaultStatusCode.REDIRECT, 301);
+        map.put(DefaultStatusCode.FOUND, 302);
+        map.put(DefaultStatusCode.REDIRECT_SEE_OTHER, 303);
+        map.put(DefaultStatusCode.NOT_MODIFIED, 304);
+        map.put(DefaultStatusCode.TEMPORARY_REDIRECT, 307);
 
-        map.put(FixedStatusCode.BAD_REQUEST, 400);
-        map.put(FixedStatusCode.UNAUTHORIZED, 401);
-        map.put(FixedStatusCode.FORBIDDEN, 403);
-        map.put(FixedStatusCode.NOT_FOUND, 404);
-        map.put(FixedStatusCode.METHOD_NOT_ALLOWED, 405);
-        map.put(FixedStatusCode.NOT_ACCEPTABLE, 406);
-        map.put(FixedStatusCode.REQUEST_TIMEOUT, 408);
-        map.put(FixedStatusCode.CONFLICT, 409);
-        map.put(FixedStatusCode.GONE, 410);
-        map.put(FixedStatusCode.LENGTH_REQUIRED, 411);
-        map.put(FixedStatusCode.PRECONDITION_FAILED, 412);
-        map.put(FixedStatusCode.PAYLOAD_TOO_LARGE, 413);
-        map.put(FixedStatusCode.UNSUPPORTED_MEDIA_TYPE, 415);
-        map.put(FixedStatusCode.RANGE_NOT_SATISFIABLE, 416);
-        map.put(FixedStatusCode.EXPECTATION_FAILED, 417);
-        map.put(FixedStatusCode.TOO_MANY_REQUESTS, 429);
-        map.put(FixedStatusCode.INTERNAL_ERROR, 500);
-        map.put(FixedStatusCode.NOT_IMPLEMENTED, 501);
-        map.put(FixedStatusCode.SERVICE_UNAVAILABLE, 503);
-        map.put(FixedStatusCode.UNSUPPORTED_HTTP_VERSION, 505);
+        map.put(DefaultStatusCode.BAD_REQUEST, 400);
+        map.put(DefaultStatusCode.UNAUTHORIZED, 401);
+        map.put(DefaultStatusCode.FORBIDDEN, 403);
+        map.put(DefaultStatusCode.NOT_FOUND, 404);
+        map.put(DefaultStatusCode.METHOD_NOT_ALLOWED, 405);
+        map.put(DefaultStatusCode.NOT_ACCEPTABLE, 406);
+        map.put(DefaultStatusCode.REQUEST_TIMEOUT, 408);
+        map.put(DefaultStatusCode.CONFLICT, 409);
+        map.put(DefaultStatusCode.GONE, 410);
+        map.put(DefaultStatusCode.LENGTH_REQUIRED, 411);
+        map.put(DefaultStatusCode.PRECONDITION_FAILED, 412);
+        map.put(DefaultStatusCode.PAYLOAD_TOO_LARGE, 413);
+        map.put(DefaultStatusCode.UNSUPPORTED_MEDIA_TYPE, 415);
+        map.put(DefaultStatusCode.RANGE_NOT_SATISFIABLE, 416);
+        map.put(DefaultStatusCode.EXPECTATION_FAILED, 417);
+        map.put(DefaultStatusCode.TOO_MANY_REQUESTS, 429);
+        map.put(DefaultStatusCode.INTERNAL_ERROR, 500);
+        map.put(DefaultStatusCode.NOT_IMPLEMENTED, 501);
+        map.put(DefaultStatusCode.SERVICE_UNAVAILABLE, 503);
+        map.put(DefaultStatusCode.UNSUPPORTED_HTTP_VERSION, 505);
 
         Set<Map.Entry<StatusCode, Integer>> entrySet = map.entrySet();
         for (Map.Entry<StatusCode, Integer> entry : entrySet)

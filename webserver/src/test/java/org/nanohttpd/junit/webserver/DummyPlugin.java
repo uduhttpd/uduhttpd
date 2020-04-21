@@ -34,7 +34,7 @@ package org.nanohttpd.junit.webserver;
  */
 
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.webserver.InternalRewrite;
 import org.nanohttpd.webserver.WebServerPlugin;
@@ -62,7 +62,7 @@ public class DummyPlugin implements WebServerPlugin {
         }
         byte[] bytes = "<xml/>".getBytes();
         InputStream data = new ByteArrayInputStream(bytes);
-        return Response.newFixedLengthResponse(FixedStatusCode.OK, "text/xml", data, bytes.length);
+        return Response.newFixedLengthResponse(DefaultStatusCode.OK, "text/xml", data, bytes.length);
     }
 
 }

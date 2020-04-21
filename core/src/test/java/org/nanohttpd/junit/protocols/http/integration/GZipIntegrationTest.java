@@ -41,12 +41,13 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -86,8 +87,8 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void contentEncodingShouldBeAddedToChunkedResponses() throws IOException {
-        InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "text/plain", data);
+        InputStream data = new ByteArrayInputStream("This is a test".getBytes(StandardCharsets.UTF_8));
+        testServer.response = Response.newChunkedResponse(DefaultStatusCode.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);
@@ -128,8 +129,8 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void chunkedContentIsEncodedProperly() throws IOException {
-        InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = Response.newChunkedResponse(FixedStatusCode.OK, "text/plain", data);
+        InputStream data = new ByteArrayInputStream("This is a test".getBytes(StandardCharsets.UTF_8));
+        testServer.response = Response.newChunkedResponse(DefaultStatusCode.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = new DecompressingHttpClient(httpclient).execute(request);
@@ -149,7 +150,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
     @Test
     public void contentShouldNotBeGzippedIfContentLengthIsAddedManually() throws IOException {
         testServer.response = Response.newFixedLengthResponse("This is a test");
-        testServer.response.addHeader("Content-Length", "" + ("This is a test".getBytes("UTF-8").length));
+        testServer.response.addHeader("Content-Length", "" + ("This is a test".getBytes(StandardCharsets.UTF_8).length));
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);

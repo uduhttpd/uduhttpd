@@ -52,10 +52,8 @@ public class CookieHandlerTest extends HttpServerTest {
 
     @Test
     public void testCookieHeaderCorrectlyParsed() throws IOException {
-        StringBuilder requestBuilder = new StringBuilder();
-        requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(("GET " + HttpServerTest.URI + " HTTP/1.1"
+                + System.getProperty("line.separator") + "Cookie: theme=light; sessionToken=abc123").getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSessionImpl session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
@@ -96,10 +94,8 @@ public class CookieHandlerTest extends HttpServerTest {
 
     @Test
     public void testUnloadQueue() throws IOException {
-        StringBuilder requestBuilder = new StringBuilder();
-        requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(("GET " + HttpServerTest.URI + " HTTP/1.1"
+                + System.getProperty("line.separator") + "Cookie: theme=light; sessionToken=abc123").getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSessionImpl session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
@@ -113,10 +109,8 @@ public class CookieHandlerTest extends HttpServerTest {
 
     @Test
     public void testDelete() throws IOException, ParseException {
-        StringBuilder requestBuilder = new StringBuilder();
-        requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(("GET " + HttpServerTest.URI + " HTTP/1.1"
+                + System.getProperty("line.separator") + "Cookie: theme=light; sessionToken=abc123").getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSessionImpl session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();

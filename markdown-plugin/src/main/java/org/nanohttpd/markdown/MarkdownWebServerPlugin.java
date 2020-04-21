@@ -35,12 +35,13 @@ package org.nanohttpd.markdown;
 
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.response.FixedStatusCode;
+import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.webserver.WebServerPlugin;
 import org.pegdown.PegDownProcessor;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,13 +109,8 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     public Response serveFile(String uri, Map<String, String> headers, HTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
         byte[] bytes;
-        try {
-            bytes = this.processor.markdownToHtml(markdownSource).getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            MarkdownWebServerPlugin.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
-            bytes = new byte[0];
-        }
-        return markdownSource == null ? null : Response.newFixedLengthResponse(FixedStatusCode.OK, NanoHTTPD.MIME_HTML,
+        bytes = this.processor.markdownToHtml(markdownSource).getBytes(StandardCharsets.UTF_8);
+        return markdownSource == null ? null : Response.newFixedLengthResponse(DefaultStatusCode.OK, NanoHTTPD.MIME_HTML,
                 new ByteArrayInputStream(bytes), bytes.length);
     }
 }

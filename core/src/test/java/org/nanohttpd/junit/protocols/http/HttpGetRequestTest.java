@@ -38,7 +38,6 @@ import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.ByteArrayOutputStream;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -47,9 +46,9 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testDecodingFieldWithEmptyValueAndFieldWithMissingValueGiveDifferentResults() {
         invokeServer("GET " + HttpServerTest.URI + "?foo&bar= HTTP/1.1");
-        assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("foo"));
         assertEquals(0, this.testServer.decodedParamters.get("foo").size());
-        assertTrue(this.testServer.decodedParamters.get("bar") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("bar"));
         assertEquals(1, this.testServer.decodedParamters.get("bar").size());
         assertEquals("", this.testServer.decodedParamters.get("bar").get(0));
     }
@@ -57,13 +56,13 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testDecodingMixtureOfParameters() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz&zot&zim= HTTP/1.1");
-        assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("foo"));
         assertEquals(2, this.testServer.decodedParamters.get("foo").size());
         assertEquals("bar", this.testServer.decodedParamters.get("foo").get(0));
         assertEquals("baz", this.testServer.decodedParamters.get("foo").get(1));
-        assertTrue(this.testServer.decodedParamters.get("zot") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("zot"));
         assertEquals(0, this.testServer.decodedParamters.get("zot").size());
-        assertTrue(this.testServer.decodedParamters.get("zim") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("zim"));
         assertEquals(1, this.testServer.decodedParamters.get("zim").size());
         assertEquals("", this.testServer.decodedParamters.get("zim").get(0));
     }
@@ -81,10 +80,10 @@ public class HttpGetRequestTest extends HttpServerTest {
     public void testDecodingParametersWithSingleValue() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
         assertEquals("foo=bar&baz=zot", this.testServer.queryParameterString);
-        assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("foo"));
         assertEquals(1, this.testServer.decodedParamters.get("foo").size());
         assertEquals("bar", this.testServer.decodedParamters.get("foo").get(0));
-        assertTrue(this.testServer.decodedParamters.get("baz") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("baz"));
         assertEquals(1, this.testServer.decodedParamters.get("baz").size());
         assertEquals("zot", this.testServer.decodedParamters.get("baz").get(0));
     }
@@ -93,9 +92,9 @@ public class HttpGetRequestTest extends HttpServerTest {
     public void testDecodingParametersWithSingleValueAndMissingValue() {
         invokeServer("GET " + HttpServerTest.URI + "?foo&baz=zot HTTP/1.1");
         assertEquals("foo&baz=zot", this.testServer.queryParameterString);
-        assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("foo"));
         assertEquals(0, this.testServer.decodedParamters.get("foo").size());
-        assertTrue(this.testServer.decodedParamters.get("baz") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("baz"));
         assertEquals(1, this.testServer.decodedParamters.get("baz").size());
         assertEquals("zot", this.testServer.decodedParamters.get("baz").get(0));
     }
@@ -103,7 +102,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testDecodingSingleFieldRepeated() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz HTTP/1.1");
-        assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
+        assertNotNull(this.testServer.decodedParamters.get("foo"));
         assertEquals(2, this.testServer.decodedParamters.get("foo").size());
         assertEquals("bar", this.testServer.decodedParamters.get("foo").get(0));
         assertEquals("baz", this.testServer.decodedParamters.get("foo").get(1));
@@ -226,34 +225,37 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testGetQueryParameterContainsSpace() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
-        assertEquals("The query parameter value with space decoding incorrect", "bar baz", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1,
+                this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with space decoding incorrect", "bar baz",
+                this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
     public void testGetQueryParameterContainsQuestionMark() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%3F HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
-        assertEquals("The query parameter value with question mark decoding incorrect", "bar?", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1,
+                this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with question mark decoding incorrect", "bar?",
+                this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
     public void testGetQueryParameterContainsAmpersand() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%26 HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
-        assertEquals("The query parameter value with ampersand decoding incorrect", "bar&", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1,
+                this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with ampersand decoding incorrect", "bar&",
+                this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
     public void testGetQueryParameterContainsSpecialCharactersSingleFieldRepeated() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz&foo=bar%3F&foo=bar%26 HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1,
+                this.testServer.decodedParamters.size());
         String[] parametersAsArray = this.testServer.decodedParamters.get("foo").toArray(new String[0]);
-        String[] expected = new String[]{
-                "bar baz",
-                "bar?",
-                "bar&"
-        };
+        String[] expected = new String[]{"bar baz", "bar?", "bar&"};
         assertArrayEquals("Repeated parameter not decoded correctly", expected, parametersAsArray);
     }
 }

@@ -43,5 +43,5 @@ package org.nanohttpd.util;
  */
 public interface Handler<I, O> {
 
-    public O handle(I input);
+    O handle(I input);
 }

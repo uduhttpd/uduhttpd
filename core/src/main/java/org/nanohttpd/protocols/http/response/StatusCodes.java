@@ -2,9 +2,9 @@ package org.nanohttpd.protocols.http.response;
 
 public class StatusCodes {
     public static StatusCode of(int statusCode) throws UnknownStatusCodeException {
-        for (FixedStatusCode fixedStatusCode : FixedStatusCode.values())
-            if (fixedStatusCode.getStatusCode() == statusCode)
-                return fixedStatusCode;
+        for (DefaultStatusCode defaultStatusCode : DefaultStatusCode.values())
+            if (defaultStatusCode.getStatusCode() == statusCode)
+                return defaultStatusCode;
 
         throw new UnknownStatusCodeException(statusCode);
     }
