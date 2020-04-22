@@ -39,7 +39,6 @@ import org.junit.Before;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:02 PM
@@ -64,8 +63,8 @@ public abstract class IntegrationTestBase<T extends NanoHTTPD> {
     }
 
     @After
-    public void tearDown() throws TimeoutException {
+    public void tearDown() {
         this.httpclient.getConnectionManager().shutdown();
-        this.testServer.stop(2000);
+        this.testServer.stop();
     }
 }

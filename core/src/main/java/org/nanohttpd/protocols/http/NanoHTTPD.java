@@ -42,7 +42,6 @@ import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 import org.nanohttpd.util.Factory;
-import org.nanohttpd.util.FactoryThrowing;
 import org.nanohttpd.util.Handler;
 
 import java.io.Closeable;
@@ -207,15 +206,10 @@ public abstract class NanoHTTPD {
         return mime == null ? "application/octet-stream" : mime;
     }
 
-    public static void safeClose(Object closeable) {
+    public static void safeClose(Closeable closeable) {
         try {
-            if (closeable != null) {
-                if (closeable instanceof Closeable) {
-                    ((Closeable) closeable).close();
-                } else {
-                    throw new IllegalArgumentException("Unknown object to close");
-                }
-            }
+            if (closeable != null)
+                closeable.close();
         } catch (IOException e) {
             NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
         }
@@ -225,19 +219,15 @@ public abstract class NanoHTTPD {
 
     private ClientRequestExecutorFactory clientRequestExecutorFactory;
 
-    private ServerSocket serverSocket;
-
-    private Thread mServerThread;
-
-    private ServerSocketFactory serverSocketFactory;
-
-    public ServerSocket getServerSocket() {
-        return serverSocket;
-    }
-
     private Handler<HTTPSession, Response> httpHandler;
 
     protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
+
+    private ServerSocket serverSocket;
+
+    private Thread serverThread;
+
+    private ServerSocketFactory serverSocketFactory;
 
     private Factory<TempFileManager> tempFileManagerFactory;
 
@@ -381,6 +371,10 @@ public abstract class NanoHTTPD {
         return serverSocket == null ? getServerSocketFactory().getBindPort() : serverSocket.getLocalPort();
     }
 
+    public ServerSocket getServerSocket() {
+        return serverSocket;
+    }
+
     public ServerSocketFactory getServerSocketFactory() {
         return serverSocketFactory;
     }
@@ -393,15 +387,15 @@ public abstract class NanoHTTPD {
     }
 
     public final boolean isListening() {
-        return serverSocket != null && serverSocket.isBound() && mServerThread.isAlive();
+        return serverSocket != null && serverSocket.isBound() && serverThread.isAlive();
     }
 
     public final boolean isServerThreadInterrupted() {
-        return mServerThread == null || mServerThread.isInterrupted();
+        return serverThread == null || serverThread.isInterrupted();
     }
 
     public final boolean isAlive() {
-        return mServerThread != null && mServerThread.isAlive();
+        return serverThread != null && serverThread.isAlive();
     }
 
     /**
@@ -422,7 +416,7 @@ public abstract class NanoHTTPD {
         return httpHandler.handle(session);
     }
 
-    public void handleConnectionRequest(Socket socket) throws IOException {
+    public void handleConnectionRequest(Socket socket) {
         getClientRequestExecutorService().submit(getClientRequestExecutorFactory().create(this, socket));
     }
 
@@ -443,7 +437,6 @@ public abstract class NanoHTTPD {
     public void setClientRequestExecutorService(ExecutorService executorService) {
         clientRequestExecutorService = executorService;
     }
-
 
 
     /**
@@ -470,10 +463,10 @@ public abstract class NanoHTTPD {
         serverSocket.setReuseAddress(true);
 
         ServerRunnable serverRunnable = createServerRunnable();
-        mServerThread = new Thread(serverRunnable);
-        mServerThread.setDaemon(daemon);
-        mServerThread.setName("uduhttpd daemon");
-        mServerThread.start();
+        serverThread = new Thread(serverRunnable);
+        serverThread.setDaemon(daemon);
+        serverThread.setName("uduhttpd daemon");
+        serverThread.start();
     }
 
     /**
@@ -510,32 +503,31 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Non-blocking way of stopping listening for connections and disconnect existing ones.
+     * Stop listening for connections and wait for the thread to exit.
      */
-    public boolean stop() {
-        if (isListening()) {
-            safeClose(serverSocket);
-            getClientRequestExecutorService().shutdown();
-            return true;
-        }
-        return false;
+    public void stop() {
+        stop(0);
     }
 
     /**
-     * Stop listening for connections and disconnect the existing ones synchronously
+     * Stop listening for connections and exit the thread.
      *
-     * @param wait time before giving up.
-     * @throws TimeoutException when the server thread fails to stop.
+     * @param wait time before giving up. '0' to wait indefinitely
      */
-    public void stop(int wait) throws TimeoutException {
-        if (stop() && isAlive()) {
-            try {
-                mServerThread.join(wait);
-            } catch (InterruptedException ignored) {
+    public void stop(int wait) {
+        if (isListening()) {
+            safeClose(serverSocket);
+            getClientRequestExecutorService().shutdown();
+
+            if (isAlive()) {
+                try {
+                    serverThread.join(wait);
+                    serverThread = null;
+                } catch (InterruptedException ignored) {
+                }
             }
 
-            if (isAlive())
-                throw new TimeoutException("Could not stop the server thread in the given time.");
+            serverSocket = null;
         }
     }
 }

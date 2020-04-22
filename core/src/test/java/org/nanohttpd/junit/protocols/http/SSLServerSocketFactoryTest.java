@@ -99,7 +99,7 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
     }
 
     @After
-    public void stopServer() throws TimeoutException {
-        this.testServer.stop(2000);
+    public void stopServer() {
+        this.testServer.stop();
     }
 }

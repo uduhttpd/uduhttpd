@@ -64,8 +64,8 @@ public class EchoWebSocketsTest {
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
-        EchoWebSocketsTest.server.stop(2000);
+    public static void tearDown() {
+        EchoWebSocketsTest.server.stop();
     }
 
     @Test

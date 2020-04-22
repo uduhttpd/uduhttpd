@@ -63,6 +63,7 @@ public class SecureServerSocketFactory extends ServerSocketFactoryImpl {
     public ServerSocket create() throws IOException {
         SSLServerSocket serverSocket = (SSLServerSocket) mServerSocketFactory.createServerSocket(
                 getBindPort(), 0, getBindAddress());
+        serverSocket.setSoTimeout(getSoTimeout());
         serverSocket.setEnabledProtocols(mSslProtocols != null ? mSslProtocols : serverSocket.getSupportedProtocols());
         serverSocket.setUseClientMode(false);
         serverSocket.setWantClientAuth(false);

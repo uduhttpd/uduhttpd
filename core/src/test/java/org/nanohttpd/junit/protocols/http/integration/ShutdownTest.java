@@ -66,12 +66,11 @@ public class ShutdownTest {
         TestServer server = new TestServer();
         server.start(2000);
         makeRequest();
-        server.stop(2000);
+        server.stop();
         try {
             makeRequest();
             fail("Connection should be closed!");
-        } catch (IOException e) {
-            // Expected exception
+        } catch (IOException ignored) {
         }
     }
 

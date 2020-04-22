@@ -34,8 +34,6 @@ package org.nanohttpd.protocols.http;
  */
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 
 /**
  * The runnable that will be used for the main listening thread.
@@ -49,12 +47,13 @@ public class ServerRunnable implements Runnable {
 
     @Override
     public void run() {
-        do {
-            try {
+        try {
+            do {
                 server.handleConnectionRequest(server.getServerSocket().accept());
-            } catch (IOException e) {
-                NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
-            }
-        } while (!server.getServerSocket().isClosed());
+            } while (!server.getServerSocket().isClosed());
+        } catch (IOException e) {
+            if (!server.getServerSocket().isClosed())
+                e.printStackTrace();
+        }
     }
 }

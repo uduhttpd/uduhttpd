@@ -92,6 +92,6 @@ public class HttpSSLServerTest extends HttpServerTest {
 
     @After
     public void stopServer() throws TimeoutException {
-        this.testServer.stop(2000);
+        this.testServer.stop();
     }
 }

@@ -48,8 +48,7 @@ public class DefaultServerSocketFactory extends ServerSocketFactoryImpl {
     @Override
     public ServerSocket create() throws IOException {
         ServerSocket serverSocket = new ServerSocket(getBindPort(), 0, getBindAddress());
-        if (getSoTimeout() > 0)
-            serverSocket.setSoTimeout(getSoTimeout());
+        serverSocket.setSoTimeout(getSoTimeout());
         return serverSocket;
     }
 }

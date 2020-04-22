@@ -49,7 +49,7 @@ public class EchoSocketSample {
             System.in.read();
         } catch (IOException ignored) {
         }
-        ws.stop(2000);
+        ws.stop();
         System.out.println("Server stopped.\n");
     }
 

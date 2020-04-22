@@ -62,7 +62,7 @@ public class ServerRunner {
         } catch (Throwable ignored) {
         }
 
-        server.stop(2000);
+        server.stop();
         System.out.println("Server stopped.\n");
     }
 

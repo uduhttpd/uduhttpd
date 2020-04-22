@@ -267,7 +267,7 @@ public class HttpServerTest {
             }
         } finally {
             if (server != null) {
-                server.stop(2000);
+                server.stop();
             }
         }
     }
@@ -325,12 +325,12 @@ public class HttpServerTest {
             fail("No server response");
         }
 
-        server.stop(2000);
+        server.stop();
     }
 
     @Test
     public void testServerStops() throws TimeoutException {
-        testServer.stop(2000);
+        testServer.stop();
         Assert.assertFalse(testServer.isListening());
     }
 }

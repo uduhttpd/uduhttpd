@@ -39,6 +39,7 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
             TempFileManager tempFileManager = server.getTempFileManagerFactory().create();
             HTTPSessionImpl session = new HTTPSessionImpl(server, tempFileManager, inputStream, outputStream,
                     clientSocket.getInetAddress());
+            // FIXME: 23.04.2020 Why is this run in a loop?
             while (!clientSocket.isClosed()) {
                 session.execute();
             }
