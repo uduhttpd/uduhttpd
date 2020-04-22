@@ -43,6 +43,7 @@ import org.nanohttpd.util.ServerRunner;
 
 import java.io.*;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class SimpleWebServer extends NanoHTTPD {
@@ -51,13 +52,7 @@ public class SimpleWebServer extends NanoHTTPD {
      * Default Index file names.
      */
     @SuppressWarnings("serial")
-    public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {
-
-        {
-            add("index.html");
-            add("index.htm");
-        }
-    };
+    public static final List<String> INDEX_FILE_NAMES = new ArrayList<>();
 
     /**
      * The distribution licence
@@ -65,6 +60,9 @@ public class SimpleWebServer extends NanoHTTPD {
     private static final String LICENCE;
 
     static {
+        INDEX_FILE_NAMES.add("index.html");
+        INDEX_FILE_NAMES.add("index.htm");
+
         mimeTypes();
         String text;
         try {
@@ -87,7 +85,7 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Starts as a standalone file server and waits for Enter.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnknownHostException {
         // Defaults
         int port = 8080;
 
@@ -188,19 +186,21 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected List<File> rootDirs;
 
-    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet, String cors) {
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet, String cors)
+            throws UnknownHostException {
         this(host, port, Collections.singletonList(wwwroot), quiet, cors);
     }
 
-    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) throws UnknownHostException {
         this(host, port, Collections.singletonList(wwwroot), quiet, null);
     }
 
-    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) {
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) throws UnknownHostException {
         this(host, port, wwwroots, quiet, null);
     }
 
-    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet, String cors) {
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet, String cors)
+            throws UnknownHostException {
         super(host, port);
         this.quiet = quiet;
         this.cors = cors;

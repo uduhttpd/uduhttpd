@@ -61,7 +61,8 @@ public class SecureServerSocketFactory extends ServerSocketFactoryImpl {
 
     @Override
     public ServerSocket create() throws IOException {
-        SSLServerSocket serverSocket = (SSLServerSocket) mServerSocketFactory.createServerSocket();
+        SSLServerSocket serverSocket = (SSLServerSocket) mServerSocketFactory.createServerSocket(
+                getBindPort(), 0, getBindAddress());
         serverSocket.setEnabledProtocols(mSslProtocols != null ? mSslProtocols : serverSocket.getSupportedProtocols());
         serverSocket.setUseClientMode(false);
         serverSocket.setWantClientAuth(false);

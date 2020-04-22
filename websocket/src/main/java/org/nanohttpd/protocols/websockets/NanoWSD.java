@@ -39,6 +39,7 @@ import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.util.Handler;
 
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -133,7 +134,7 @@ public abstract class NanoWSD extends NanoHTTPD {
         addHTTPInterceptor(new Interceptor());
     }
 
-    public NanoWSD(String hostname, int port) {
+    public NanoWSD(String hostname, int port) throws UnknownHostException {
         super(hostname, port);
         addHTTPInterceptor(new Interceptor());
     }

@@ -1,6 +1,8 @@
 package org.nanohttpd.protocols.http.sockets;
 
 import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketImpl;
 
 abstract class ServerSocketFactoryImpl implements ServerSocketFactory {
     private final InetAddress mBindAddress;
@@ -11,6 +13,9 @@ abstract class ServerSocketFactoryImpl implements ServerSocketFactory {
         mBindAddress = bindAddress;
         mBindPort = bindPort;
         mSoTimeout = timeout;
+
+        if (bindPort < 0)
+            throw new IllegalArgumentException("The port cannot be below 0.");
     }
 
     @Override

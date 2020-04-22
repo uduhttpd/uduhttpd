@@ -71,6 +71,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * very strange but if the file upload is the first request the test fails.
@@ -239,20 +240,9 @@ public class TestNanoFileUpload {
     }
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, TimeoutException {
         this.testServer = new TestServer();
-        this.testServer.start();
-        try {
-            long start = System.currentTimeMillis();
-            Thread.sleep(100L);
-            while (!this.testServer.wasStarted()) {
-                Thread.sleep(100L);
-                if (System.currentTimeMillis() - start > 2000) {
-                    Assert.fail("could not start server");
-                }
-            }
-        } catch (InterruptedException e) {
-        }
+        this.testServer.start(2000);
     }
 
     @After

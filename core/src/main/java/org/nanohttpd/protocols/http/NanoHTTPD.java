@@ -480,7 +480,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Start the server while ensuring it has started listening. That this returns as soon as the server starts
+     * Start the server and ensure that it has started listening. Beware that this returns as soon as the server starts
      * listening and does not care if waitForStart milliseconds has passed or not.
      *
      * @param daemon       start the thread as daemon or not.
@@ -498,6 +498,18 @@ public abstract class NanoHTTPD {
         while (!isListening())
             if (System.nanoTime() > failAt)
                 throw new TimeoutException("Could not start the server in the given time.");
+    }
+
+    /**
+     * Start the server and ensure that it has started listening. Beware that this returns as soon as the server starts
+     * listening and does not care if waitForStart milliseconds has passed or not.
+     *
+     * @param waitForStart milliseconds to wait before giving up.
+     * @throws IOException      when anything related to socket goes wrong.
+     * @throws TimeoutException when the given waitForStart time is exceeded, but the server did not start listening.
+     */
+    public void start(int waitForStart) throws IOException, TimeoutException {
+        start(true, waitForStart);
     }
 
     /**

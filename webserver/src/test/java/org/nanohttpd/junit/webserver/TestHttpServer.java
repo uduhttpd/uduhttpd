@@ -48,6 +48,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -66,15 +67,13 @@ public class TestHttpServer extends AbstractTestHttpServer {
 
             @Override
             public void run() {
-                String[] args = {
-                        "--host",
-                        "localhost",
-                        "--port",
-                        "9090",
-                        "--dir",
-                        "src/test/resources"
-                };
-                SimpleWebServer.main(args);
+                String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources"};
+
+                try {
+                    SimpleWebServer.main(args);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
         });
         serverStartThread.start();
@@ -153,18 +152,14 @@ public class TestHttpServer extends AbstractTestHttpServer {
     public void doArgumentTest() throws InterruptedException, IOException {
         final String testPort = "9458";
         Thread testServer = new Thread(new Runnable() {
-
             @Override
             public void run() {
-                String[] args = {
-                        "-h",
-                        "localhost",
-                        "-p",
-                        testPort,
-                        "-d",
-                        "src/test/resources"
-                };
-                SimpleWebServer.main(args);
+                String[] args = {"-h", "localhost", "-p", testPort, "-d", "src/test/resources"};
+                try {
+                    SimpleWebServer.main(args);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
         });
 

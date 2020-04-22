@@ -83,7 +83,8 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
 
         secureServerSocketFactory = new SecureServerSocketFactory(getDefaultSslServerSocketFactory(), protocols);
         socket = (SSLServerSocket) secureServerSocketFactory.create();
-        Assert.assertArrayEquals("Enabled protocols specified in the factory were not set to the socket.", protocols, socket.getEnabledProtocols());
+        Assert.assertArrayEquals("Enabled protocols specified in the factory were not set to the socket.",
+                protocols, socket.getEnabledProtocols());
     }
 
     @Before

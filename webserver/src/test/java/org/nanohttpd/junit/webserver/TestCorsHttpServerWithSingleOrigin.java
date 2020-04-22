@@ -47,6 +47,7 @@ import org.nanohttpd.webserver.SimpleWebServer;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -66,16 +67,13 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
 
             @Override
             public void run() {
-                String[] args = {
-                        "--host",
-                        "localhost",
-                        "--port",
-                        "9090",
-                        "--dir",
-                        "src/test/resources",
-                        "--cors=http://localhost:9090"
-                };
-                SimpleWebServer.main(args);
+                String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources",
+                        "--cors=http://localhost:9090"};
+                try {
+                    SimpleWebServer.main(args);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
             }
         });
         serverStartThread.start();

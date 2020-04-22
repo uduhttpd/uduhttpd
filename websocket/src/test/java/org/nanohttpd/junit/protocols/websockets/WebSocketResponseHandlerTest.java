@@ -48,6 +48,7 @@ import org.nanohttpd.util.Handler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -72,13 +73,13 @@ public class WebSocketResponseHandlerTest {
             super(port);
         }
 
-        public MockedWSD(String hostname, int port) {
+        public MockedWSD(String hostname, int port) throws UnknownHostException {
             super(hostname, port);
         }
 
         // This is to work around Mockito being a little bitch.
         public void initialize() {
-            interceptors = new ArrayList<Handler<HTTPSession, Response>>();
+            interceptors = new ArrayList<>();
             addHTTPInterceptor(new Interceptor());
 
             setHTTPHandler(new Handler<HTTPSession, Response>() {
