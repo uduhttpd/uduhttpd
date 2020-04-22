@@ -45,13 +45,13 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 public class SimpleWebServer extends NanoHTTPD {
 
     /**
      * Default Index file names.
      */
-    @SuppressWarnings("serial")
     public static final List<String> INDEX_FILE_NAMES = new ArrayList<>();
 
     /**
@@ -85,7 +85,7 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Starts as a standalone file server and waits for Enter.
      */
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) throws UnknownHostException, TimeoutException {
         // Defaults
         int port = 8080;
 

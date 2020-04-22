@@ -69,8 +69,8 @@ public class DefaultTempFileManager implements TempFileManager {
         for (TempFile file : this.tempFiles) {
             try {
                 file.delete();
-            } catch (Exception ignored) {
-                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", ignored);
+            } catch (Exception e) {
+                NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", e);
             }
         }
         this.tempFiles.clear();

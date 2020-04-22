@@ -54,7 +54,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -129,7 +129,7 @@ public class WebSocketResponseHandlerTest {
         // constructors!!
         this.nanoWebSocketServer.initialize();
 
-        this.headers = new HashMap<String, String>();
+        this.headers = new HashMap<>();
         this.headers.put("upgrade", "websocket");
         this.headers.put("connection", "Upgrade");
         this.headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
@@ -200,7 +200,7 @@ public class WebSocketResponseHandlerTest {
             try {
                 webSocketFrame.setMaskingKey(new byte[maskingKeyLength]);
                 Assert.fail("IllegalArgumentException expected but not thrown");
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException ignored) {
 
             }
         }
@@ -222,9 +222,9 @@ public class WebSocketResponseHandlerTest {
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Text, true, "payload".getBytes());
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
-        Assert.assertEquals(9, writtenBytes.length);
-        Assert.assertEquals("Header byte incorrect.", -127, writtenBytes[0]);
-        Assert.assertEquals("Payload length byte incorrect.", 7, writtenBytes[1]);
+        assertEquals(9, writtenBytes.length);
+        assertEquals("Header byte incorrect.", -127, writtenBytes[0]);
+        assertEquals("Payload length byte incorrect.", 7, writtenBytes[1]);
         Assert.assertArrayEquals(new byte[]{
                 -127,
                 7,
@@ -250,9 +250,9 @@ public class WebSocketResponseHandlerTest {
         });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
-        Assert.assertEquals(13, writtenBytes.length);
-        Assert.assertEquals("Header byte incorrect.", -126, writtenBytes[0]);
-        Assert.assertEquals("Payload length byte incorrect.", -121, writtenBytes[1]);
+        assertEquals(13, writtenBytes.length);
+        assertEquals("Header byte incorrect.", -126, writtenBytes[0]);
+        assertEquals("Payload length byte incorrect.", -121, writtenBytes[1]);
         Assert.assertArrayEquals(new byte[]{
                 -126,
                 -121,
@@ -276,8 +276,8 @@ public class WebSocketResponseHandlerTest {
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, true, new byte[257]);
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
-        Assert.assertEquals(261, writtenBytes.length);
-        Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
+        assertEquals(261, writtenBytes.length);
+        assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
                 126,
                 1,
@@ -301,8 +301,8 @@ public class WebSocketResponseHandlerTest {
         });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
-        Assert.assertEquals(265, writtenBytes.length);
-        Assert.assertEquals("Header byte incorrect.", 9, writtenBytes[0]);
+        assertEquals(265, writtenBytes.length);
+        assertEquals("Header byte incorrect.", 9, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
                 -2,
                 1,
@@ -320,8 +320,8 @@ public class WebSocketResponseHandlerTest {
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, true, new byte[65536]);
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
-        Assert.assertEquals(65546, writtenBytes.length);
-        Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
+        assertEquals(65546, writtenBytes.length);
+        assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
         Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
                 127,
                 0,

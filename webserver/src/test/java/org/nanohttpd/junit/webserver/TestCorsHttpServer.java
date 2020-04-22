@@ -49,6 +49,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Matthieu Brouillard [matthieu@brouillard.fr]
@@ -70,7 +71,7 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
                 String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors"};
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException e) {
+                } catch (UnknownHostException | TimeoutException e) {
                     e.printStackTrace();
                 }
             }

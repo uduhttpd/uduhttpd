@@ -43,6 +43,7 @@ import org.nanohttpd.util.ServerRunner;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/9/13 at 12:47 AM
@@ -92,9 +93,13 @@ public class TempFilesServer extends DebugServer {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
         TempFilesServer server = new TempFilesServer();
         server.setTempFileManagerFactory(new ExampleManagerFactory());
-        ServerRunner.executeInstance(server);
+        try {
+            ServerRunner.executeInstance(server);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 }

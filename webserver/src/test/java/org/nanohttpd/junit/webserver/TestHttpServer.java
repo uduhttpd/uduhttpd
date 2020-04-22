@@ -50,6 +50,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -68,10 +69,9 @@ public class TestHttpServer extends AbstractTestHttpServer {
             @Override
             public void run() {
                 String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources"};
-
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException e) {
+                } catch (UnknownHostException | TimeoutException e) {
                     e.printStackTrace();
                 }
             }
@@ -157,7 +157,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
                 String[] args = {"-h", "localhost", "-p", testPort, "-d", "src/test/resources"};
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException e) {
+                } catch (UnknownHostException | TimeoutException e) {
                     e.printStackTrace();
                 }
             }

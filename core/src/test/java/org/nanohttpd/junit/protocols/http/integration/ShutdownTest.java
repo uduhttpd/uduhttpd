@@ -43,12 +43,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.fail;
 
 public class ShutdownTest {
 
-    private class TestServer extends NanoHTTPD {
+    private static class TestServer extends NanoHTTPD {
 
         public TestServer() {
             super(8092);
@@ -61,11 +62,11 @@ public class ShutdownTest {
     }
 
     @Test
-    public void connectionsAreClosedWhenServerStops() throws IOException {
+    public void connectionsAreClosedWhenServerStops() throws IOException, TimeoutException {
         TestServer server = new TestServer();
-        server.start();
+        server.start(2000);
         makeRequest();
-        server.stop();
+        server.stop(2000);
         try {
             makeRequest();
             fail("Connection should be closed!");

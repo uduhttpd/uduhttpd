@@ -36,6 +36,7 @@ package org.nanohttpd.util;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,9 +47,9 @@ public class ServerRunner {
      */
     private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
 
-    public static void executeInstance(NanoHTTPD server) {
+    public static void executeInstance(NanoHTTPD server) throws TimeoutException {
         try {
-            server.start( false);
+            server.start( false, 2000);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -61,11 +62,11 @@ public class ServerRunner {
         } catch (Throwable ignored) {
         }
 
-        server.stop();
+        server.stop(2000);
         System.out.println("Server stopped.\n");
     }
 
-    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
+    public static void run(Class<? extends NanoHTTPD> serverClass) {
         try {
             executeInstance(serverClass.newInstance());
         } catch (Exception e) {

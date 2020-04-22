@@ -49,6 +49,7 @@ import org.nanohttpd.protocols.http.sockets.SecureSockets;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 public class HttpSSLServerTest extends HttpServerTest {
 
@@ -86,11 +87,11 @@ public class HttpSSLServerTest extends HttpServerTest {
                 NanoHTTPD.SOCKET_READ_TIMEOUT, sslServerSocketFactory, null);
         this.testServer = new TestServer(serverSocketFactory);
         this.tempFileManager = new TestTempFileManager();
-        this.testServer.start(true, 2000);
+        this.testServer.start(true, 4000);
     }
 
     @After
-    public void tearDown() {
-        this.testServer.stop();
+    public void stopServer() throws TimeoutException {
+        this.testServer.stop(2000);
     }
 }

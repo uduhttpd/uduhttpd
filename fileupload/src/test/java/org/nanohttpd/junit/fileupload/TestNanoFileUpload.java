@@ -246,8 +246,8 @@ public class TestNanoFileUpload {
     }
 
     @After
-    public void tearDown() {
-        this.testServer.stop();
+    public void tearDown() throws TimeoutException {
+        this.testServer.stop(2000);
     }
 
 }

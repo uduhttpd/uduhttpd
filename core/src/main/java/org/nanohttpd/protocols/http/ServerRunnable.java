@@ -34,31 +34,27 @@ package org.nanohttpd.protocols.http;
  */
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
 /**
  * The runnable that will be used for the main listening thread.
  */
 public class ServerRunnable implements Runnable {
-
-    private final NanoHTTPD mServer;
+    private final NanoHTTPD server;
 
     public ServerRunnable(NanoHTTPD server) {
-        this.mServer = server;
+        this.server = server;
     }
 
     @Override
     public void run() {
         do {
             try {
-                final Socket acceptedSocket = mServer.getServerSocket().accept();
-                final InputStream inputStream = acceptedSocket.getInputStream();
-                mServer.asyncRunner.exec(mServer.createClientHandler(acceptedSocket, inputStream));
+                server.handleConnectionRequest(server.getServerSocket().accept());
             } catch (IOException e) {
                 NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
             }
-        } while (!mServer.getServerSocket().isClosed());
+        } while (!server.getServerSocket().isClosed());
     }
 }

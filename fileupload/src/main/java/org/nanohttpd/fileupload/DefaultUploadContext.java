@@ -15,15 +15,11 @@ public class DefaultUploadContext implements UploadContext {
 
     @Override
     public long contentLength() {
-        long size;
         try {
-            String cl1 = mSession.getHeaders().get("content-length");
-            size = Long.parseLong(cl1);
+            return Long.parseLong(mSession.getHeaders().get("content-length"));
         } catch (NumberFormatException var4) {
-            size = -1L;
+            return -1L;
         }
-
-        return size;
     }
 
     @Override

@@ -33,14 +33,14 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.client.ClientRequestExecutorFactory;
+import org.nanohttpd.protocols.http.client.DefaultClientRequestExecutorFactory;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
 import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
-import org.nanohttpd.protocols.http.threading.AsyncRunner;
-import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
 import org.nanohttpd.util.Factory;
 import org.nanohttpd.util.FactoryThrowing;
 import org.nanohttpd.util.Handler;
@@ -51,7 +51,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -221,26 +221,25 @@ public abstract class NanoHTTPD {
         }
     }
 
-    private ServerSocket mServerSocket;
+    private ExecutorService clientRequestExecutorService;
 
-    public ServerSocket getServerSocket() {
-        return mServerSocket;
-    }
+    private ClientRequestExecutorFactory clientRequestExecutorFactory;
 
-    private ServerSocketFactory mServerSocketFactory;
+    private ServerSocket serverSocket;
 
     private Thread mServerThread;
+
+    private ServerSocketFactory serverSocketFactory;
+
+    public ServerSocket getServerSocket() {
+        return serverSocket;
+    }
 
     private Handler<HTTPSession, Response> httpHandler;
 
     protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
 
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     */
-    protected AsyncRunner asyncRunner;
-
-    private Factory<TempFileManager> mTempFileManagerFactory;
+    private Factory<TempFileManager> tempFileManagerFactory;
 
     public NanoHTTPD() {
         this(0);
@@ -270,12 +269,10 @@ public abstract class NanoHTTPD {
         if (socketFactory == null)
             throw new NullPointerException("Socket factory cannot be null.");
 
-        mServerSocketFactory = socketFactory;
-        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
-        setAsyncRunner(new DefaultAsyncRunner());
+        serverSocketFactory = socketFactory;
 
         // creates a default handler that redirects to deprecated serve();
-        this.httpHandler = new Handler<HTTPSession, Response>() {
+        httpHandler = new Handler<HTTPSession, Response>() {
 
             @Override
             public Response handle(HTTPSession input) {
@@ -290,25 +287,6 @@ public abstract class NanoHTTPD {
 
     public void addHTTPInterceptor(Handler<HTTPSession, Response> interceptor) {
         interceptors.add(interceptor);
-    }
-
-    /**
-     * Forcibly closes all connections that are open.
-     */
-    public synchronized void closeAllConnections() {
-        stop();
-    }
-
-    /**
-     * create a instance of the client handler, subclasses can return a subclass
-     * of the ClientHandler.
-     *
-     * @param clientSocket the socket representing the client
-     * @param inputStream  the input stream
-     * @return the client handler
-     */
-    protected ClientHandler createClientHandler(final Socket clientSocket, final InputStream inputStream) {
-        return new ClientHandler(this, inputStream, clientSocket);
     }
 
     /**
@@ -384,27 +362,45 @@ public abstract class NanoHTTPD {
         return null;
     }
 
-    public final int getListeningPort() {
-        return mServerSocket == null ? mServerSocketFactory.getBindPort() : mServerSocket.getLocalPort();
+    public ExecutorService getClientRequestExecutorService() {
+        if (clientRequestExecutorService == null)
+            clientRequestExecutorService = new ThreadPoolExecutor(3, 40, 5, TimeUnit.SECONDS,
+                    new LinkedBlockingDeque<Runnable>());
+
+        return clientRequestExecutorService;
     }
 
-    public FactoryThrowing<ServerSocket, IOException> getServerSocketFactory() {
-        return mServerSocketFactory;
+    public ClientRequestExecutorFactory getClientRequestExecutorFactory() {
+        if (clientRequestExecutorFactory == null)
+            clientRequestExecutorFactory = new DefaultClientRequestExecutorFactory();
+
+        return clientRequestExecutorFactory;
+    }
+
+    public final int getListeningPort() {
+        return serverSocket == null ? getServerSocketFactory().getBindPort() : serverSocket.getLocalPort();
+    }
+
+    public ServerSocketFactory getServerSocketFactory() {
+        return serverSocketFactory;
     }
 
     public Factory<TempFileManager> getTempFileManagerFactory() {
-        return mTempFileManagerFactory;
+        if (tempFileManagerFactory == null)
+            tempFileManagerFactory = new DefaultTempFileManagerFactory();
+
+        return tempFileManagerFactory;
     }
 
     public final boolean isListening() {
-        return mServerSocket != null && !mServerSocket.isClosed() && mServerThread.isAlive();
+        return serverSocket != null && serverSocket.isBound() && mServerThread.isAlive();
     }
 
     public final boolean isServerThreadInterrupted() {
         return mServerThread == null || mServerThread.isInterrupted();
     }
 
-    public final boolean isServerThreadAlive() {
+    public final boolean isAlive() {
         return mServerThread != null && mServerThread.isAlive();
     }
 
@@ -426,6 +422,10 @@ public abstract class NanoHTTPD {
         return httpHandler.handle(session);
     }
 
+    public void handleConnectionRequest(Socket socket) throws IOException {
+        getClientRequestExecutorService().submit(getClientRequestExecutorFactory().create(this, socket));
+    }
+
     /**
      * Override this to customize the server.
      * <p/>
@@ -440,14 +440,11 @@ public abstract class NanoHTTPD {
         return Response.newFixedLengthResponse(DefaultStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     *
-     * @param asyncRunner new strategy for handling threads.
-     */
-    public void setAsyncRunner(AsyncRunner asyncRunner) {
-        this.asyncRunner = asyncRunner;
+    public void setClientRequestExecutorService(ExecutorService executorService) {
+        clientRequestExecutorService = executorService;
     }
+
+
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
@@ -455,7 +452,7 @@ public abstract class NanoHTTPD {
      * @param factory new strategy for handling temp files.
      */
     public void setTempFileManagerFactory(Factory<TempFileManager> factory) {
-        mTempFileManagerFactory = factory;
+        tempFileManagerFactory = factory;
     }
 
     public void start() throws IOException {
@@ -469,8 +466,8 @@ public abstract class NanoHTTPD {
      * @throws IOException when anything related to socket is gone wrong.
      */
     public void start(boolean daemon) throws IOException {
-        mServerSocket = getServerSocketFactory().create();
-        mServerSocket.setReuseAddress(true);
+        serverSocket = getServerSocketFactory().create();
+        serverSocket.setReuseAddress(true);
 
         ServerRunnable serverRunnable = createServerRunnable();
         mServerThread = new Thread(serverRunnable);
@@ -495,7 +492,7 @@ public abstract class NanoHTTPD {
         start(daemon);
 
         long failAt = (long) (System.nanoTime() + (waitForStart * 1e6));
-        while (!isListening())
+        while (!isListening() || !isAlive())
             if (System.nanoTime() > failAt)
                 throw new TimeoutException("Could not start the server in the given time.");
     }
@@ -513,17 +510,32 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Stop the server.
+     * Non-blocking way of stopping listening for connections and disconnect existing ones.
      */
-    public void stop() {
-        try {
-            safeClose(this.mServerSocket);
-            this.asyncRunner.closeAll();
-            if (this.mServerThread != null) {
-                this.mServerThread.join();
+    public boolean stop() {
+        if (isListening()) {
+            safeClose(serverSocket);
+            getClientRequestExecutorService().shutdown();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Stop listening for connections and disconnect the existing ones synchronously
+     *
+     * @param wait time before giving up.
+     * @throws TimeoutException when the server thread fails to stop.
+     */
+    public void stop(int wait) throws TimeoutException {
+        if (stop() && isAlive()) {
+            try {
+                mServerThread.join(wait);
+            } catch (InterruptedException ignored) {
             }
-        } catch (Exception e) {
-            NanoHTTPD.LOG.log(Level.SEVERE, "Could not stop all connections", e);
+
+            if (isAlive())
+                throw new TimeoutException("Could not stop the server thread in the given time.");
         }
     }
 }

@@ -58,9 +58,11 @@ public class HTTPSessionImpl implements HTTPSession {
 
     public static final String POST_DATA = "postData";
 
-    private static final int REQUEST_BUFFER_LEN = 512, MEMORY_STORE_LIMIT = 1024;
+    private static final int REQUEST_BUFFER_LEN = 512,
+            MEMORY_STORE_LIMIT = 1024;
 
-    public static final int BUFFER_SIZE = 8192, MAX_HEADER_SIZE = 1024;
+    public static final int BUFFER_SIZE = 8192,
+            MAX_HEADER_SIZE = 1024;
 
     private final NanoHTTPD httpd;
 
@@ -460,9 +462,9 @@ public class HTTPSessionImpl implements HTTPSession {
     private int findHeaderEnd(final byte[] buf, int rlen) {
         int splitbyte = 0;
         while (splitbyte + 1 < rlen) {
-
             // RFC2616
-            if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n') {
+            if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && splitbyte + 3 < rlen
+                    && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n') {
                 return splitbyte + 4;
             }
 

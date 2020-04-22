@@ -96,10 +96,10 @@ public abstract class NanoWSD extends NanoHTTPD {
             byte b2 = i < size ? buf[i++] : 0;
 
             int mask = 0x3F;
-            ar[a++] = NanoWSD.ALPHABET[b0 >> 2 & mask];
-            ar[a++] = NanoWSD.ALPHABET[(b0 << 4 | (b1 & 0xFF) >> 4) & mask];
-            ar[a++] = NanoWSD.ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
-            ar[a++] = NanoWSD.ALPHABET[b2 & mask];
+            ar[a++] = ALPHABET[b0 >> 2 & mask];
+            ar[a++] = ALPHABET[(b0 << 4 | (b1 & 0xFF) >> 4) & mask];
+            ar[a++] = ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
+            ar[a++] = ALPHABET[b2 & mask];
         }
         switch (size % 3) {
             case 1:
@@ -112,7 +112,7 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     public static String makeAcceptKey(String key) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
-        String text = key + NanoWSD.WEBSOCKET_KEY_MAGIC;
+        String text = key + WEBSOCKET_KEY_MAGIC;
         md.update(text.getBytes(), 0, text.length());
         byte[] sha1hash = md.digest();
         return encodeBase64(sha1hash);
@@ -140,15 +140,15 @@ public abstract class NanoWSD extends NanoHTTPD {
     }
 
     private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
-        String connection = headers.get(NanoWSD.HEADER_CONNECTION);
-        return connection != null && connection.toLowerCase().contains(NanoWSD.HEADER_CONNECTION_VALUE.toLowerCase());
+        String connection = headers.get(HEADER_CONNECTION);
+        return connection != null && connection.toLowerCase().contains(HEADER_CONNECTION_VALUE.toLowerCase());
     }
 
     protected boolean isWebsocketRequested(HTTPSession session) {
         Map<String, String> headers = session.getHeaders();
-        String upgrade = headers.get(NanoWSD.HEADER_UPGRADE);
+        String upgrade = headers.get(HEADER_UPGRADE);
         boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
-        boolean isUpgrade = NanoWSD.HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
+        boolean isUpgrade = HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
         return isUpgrade && isCorrectConnection;
     }
 
@@ -159,12 +159,12 @@ public abstract class NanoWSD extends NanoHTTPD {
     public Response handleWebSocket(final HTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
-            if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
+            if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
                 return Response.newFixedLengthResponse(DefaultStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                        "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
+                        "Invalid Websocket-Version " + headers.get(HEADER_WEBSOCKET_VERSION));
             }
 
-            if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
+            if (!headers.containsKey(HEADER_WEBSOCKET_KEY)) {
                 return Response.newFixedLengthResponse(DefaultStatusCode.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                         "Missing Websocket-Key");
             }
@@ -172,14 +172,14 @@ public abstract class NanoWSD extends NanoHTTPD {
             WebSocket webSocket = openWebSocket(session);
             Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
-                handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
+                handshakeResponse.addHeader(HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
                 return Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                         "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 
-            if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
-                handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
+            if (headers.containsKey(HEADER_WEBSOCKET_PROTOCOL)) {
+                handshakeResponse.addHeader(HEADER_WEBSOCKET_PROTOCOL, headers.get(HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
 
             return handshakeResponse;

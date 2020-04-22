@@ -9,6 +9,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
@@ -70,7 +71,6 @@ import static org.junit.Assert.*;
 public class HttpServerTest {
 
     public static class TestServer extends NanoHTTPD {
-
         public Response response = Response.newFixedLengthResponse("");
 
         public String uri;
@@ -213,7 +213,7 @@ public class HttpServerTest {
     }
 
     @Test
-    public void testMultipartFormData() throws IOException {
+    public void testMultipartFormData() throws IOException, TimeoutException {
         final int testPort = 4589;
         NanoHTTPD server = null;
 
@@ -267,7 +267,7 @@ public class HttpServerTest {
             }
         } finally {
             if (server != null) {
-                server.stop();
+                server.stop(2000);
             }
         }
     }
@@ -318,13 +318,19 @@ public class HttpServerTest {
             InputStream instream = entity.getContent();
             BufferedReader reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
             String line = reader.readLine();
-            assertNotNull(line, "Invalid server reponse");
             assertEquals("Server file check failed: " + line, "pass", line);
             reader.close();
             instream.close();
         } else {
             fail("No server response");
         }
-        server.stop();
+
+        server.stop(2000);
+    }
+
+    @Test
+    public void testServerStops() throws TimeoutException {
+        testServer.stop(2000);
+        Assert.assertFalse(testServer.isListening());
     }
 }

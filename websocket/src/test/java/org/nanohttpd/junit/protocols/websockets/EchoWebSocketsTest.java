@@ -48,6 +48,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
@@ -59,12 +60,12 @@ public class EchoWebSocketsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         EchoWebSocketsTest.server = new DebugWebSocketServer(9191, true);
-        EchoWebSocketsTest.server.start();
+        EchoWebSocketsTest.server.start(2000);
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        EchoWebSocketsTest.server.stop();
+        EchoWebSocketsTest.server.stop(2000);
     }
 
     @Test
@@ -84,7 +85,7 @@ public class EchoWebSocketsTest {
                 };
                 try {
                     EchoSocketSample.main(args);
-                } catch (IOException e) {
+                } catch (IOException | TimeoutException e) {
                     fail("Exception: " + e.getMessage());
                 }
             }
