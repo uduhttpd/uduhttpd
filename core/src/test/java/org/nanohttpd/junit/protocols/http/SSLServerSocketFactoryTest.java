@@ -2,7 +2,6 @@ package org.nanohttpd.junit.protocols.http;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
@@ -11,8 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
+import org.nanohttpd.protocols.http.sockets.SecureSockets;
 
 import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,6 +53,10 @@ import java.util.Arrays;
 
 public class SSLServerSocketFactoryTest extends HttpServerTest {
 
+    private SSLServerSocketFactory getDefaultSslServerSocketFactory() throws IOException {
+        return SecureSockets.createServerSocketFactory("/keystore.jks", "password".toCharArray());
+    }
+
     @Test
     public void testSSLConnection() throws IOException {
         DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -61,23 +66,22 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 
         Assert.assertEquals(9043, this.testServer.getListeningPort());
-        Assert.assertTrue(this.testServer.isAlive());
+        Assert.assertTrue(this.testServer.isListening());
     }
 
     @Test
     public void testCreatePassesTheProtocolsToServerSocket() throws IOException {
         // first find the supported protocols
-        SecureServerSocketFactory secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
+        SecureServerSocketFactory secureServerSocketFactory = new SecureServerSocketFactory(
+                getDefaultSslServerSocketFactory(), null);
         SSLServerSocket socket = (SSLServerSocket) secureServerSocketFactory.create();
         String[] protocols = socket.getSupportedProtocols();
 
         // remove one element from supported protocols
-        if (protocols.length > 0) {
+        if (protocols.length > 0)
             protocols = Arrays.copyOfRange(protocols, 0, protocols.length - 1);
-        }
 
-        // test
-        secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), protocols);
+        secureServerSocketFactory = new SecureServerSocketFactory(getDefaultSslServerSocketFactory(), protocols);
         socket = (SSLServerSocket) secureServerSocketFactory.create();
         Assert.assertArrayEquals("Enabled protocols specified in the factory were not set to the socket.", protocols, socket.getEnabledProtocols());
     }
@@ -85,21 +89,11 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
     @Before
     public void setUp() throws Exception {
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
-        this.testServer = new TestServer(9043);
-        this.testServer.setServerSocketFactory(new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null));
+        SecureServerSocketFactory factory = new SecureServerSocketFactory(null, 9043,
+                NanoHTTPD.SOCKET_READ_TIMEOUT, getDefaultSslServerSocketFactory(), null);
+        this.testServer = new TestServer(factory);
         this.tempFileManager = new TestTempFileManager();
-        this.testServer.start();
-        try {
-            long start = System.currentTimeMillis();
-            Thread.sleep(100L);
-            while (!this.testServer.wasStarted()) {
-                Thread.sleep(100L);
-                if (System.currentTimeMillis() - start > 2000) {
-                    Assert.fail("could not start server");
-                }
-            }
-        } catch (InterruptedException e) {
-        }
+        this.testServer.start(true, 2000);
     }
 
     @After

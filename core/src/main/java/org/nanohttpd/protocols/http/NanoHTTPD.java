@@ -35,9 +35,8 @@ package org.nanohttpd.protocols.http;
 
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
-import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
+import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 import org.nanohttpd.protocols.http.threading.AsyncRunner;
@@ -46,17 +45,13 @@ import org.nanohttpd.util.Factory;
 import org.nanohttpd.util.FactoryThrowing;
 import org.nanohttpd.util.Handler;
 
-import javax.net.ssl.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.security.KeyStore;
+import java.net.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -125,27 +120,6 @@ public abstract class NanoHTTPD {
     public static final String CONTENT_DISPOSITION_ATTRIBUTE_REGEX = "[ |\t]*([a-zA-Z]*)[ |\t]*=[ |\t]*['|\"]([^\"^']*)['|\"]";
 
     public static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
-
-    public static final class ResponseException extends Exception {
-
-        private static final long serialVersionUID = 6569838532917408380L;
-
-        private final StatusCode mStatusCode;
-
-        public ResponseException(StatusCode status, String message) {
-            super(message);
-            mStatusCode = status;
-        }
-
-        public ResponseException(StatusCode status, String message, Exception e) {
-            super(message, e);
-            mStatusCode = status;
-        }
-
-        public StatusCode getStatus() {
-            return mStatusCode;
-        }
-    }
 
     /**
      * Maximum time to wait on Socket.getInputStream().read() (in milliseconds)
@@ -219,60 +193,6 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
-     * array of loaded KeyManagers. These objects must properly
-     * loaded/initialized by the caller.
-     */
-    public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManager[] keyManagers) throws IOException {
-        SSLServerSocketFactory res = null;
-        try {
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(loadedKeyStore);
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(keyManagers, trustManagerFactory.getTrustManagers(), null);
-            res = ctx.getServerSocketFactory();
-        } catch (Exception e) {
-            throw new IOException(e.getMessage());
-        }
-        return res;
-    }
-
-    /**
-     * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and a
-     * loaded KeyManagerFactory. These objects must properly loaded/initialized
-     * by the caller.
-     */
-    public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManagerFactory loadedKeyFactory) throws IOException {
-        try {
-            return makeSSLSocketFactory(loadedKeyStore, loadedKeyFactory.getKeyManagers());
-        } catch (Exception e) {
-            throw new IOException(e.getMessage());
-        }
-    }
-
-    /**
-     * Creates an SSLSocketFactory for HTTPS. Pass a KeyStore resource with your
-     * certificate and passphrase
-     */
-    public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
-        try {
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
-
-            if (keystoreStream == null) {
-                throw new IOException("Unable to load keystore from classpath: " + keyAndTrustStoreClasspathPath);
-            }
-
-            keystore.load(keystoreStream, passphrase);
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keystore, passphrase);
-            return makeSSLSocketFactory(keystore, keyManagerFactory);
-        } catch (Exception e) {
-            throw new IOException(e.getMessage());
-        }
-    }
-
-    /**
      * Get MIME type from file name extension, if possible
      *
      * @param uri the string representing a file
@@ -301,55 +221,56 @@ public abstract class NanoHTTPD {
         }
     }
 
-    public final String hostname;
+    private ServerSocket mServerSocket;
 
-    public final int myPort;
-
-    private volatile ServerSocket myServerSocket;
-
-    public ServerSocket getMyServerSocket() {
-        return myServerSocket;
+    public ServerSocket getServerSocket() {
+        return mServerSocket;
     }
 
-    private FactoryThrowing<ServerSocket, IOException> serverSocketFactory = new DefaultServerSocketFactory();
+    private ServerSocketFactory mServerSocketFactory;
 
-    private Thread myThread;
+    private Thread mServerThread;
 
     private Handler<HTTPSession, Response> httpHandler;
 
-    protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<Handler<HTTPSession, Response>>(4);
+    protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
 
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
     protected AsyncRunner asyncRunner;
 
-    /**
-     * Pluggable strategy for creating and cleaning up temporary files.
-     */
-    private Factory<TempFileManager> tempFileManagerFactory;
+    private Factory<TempFileManager> mTempFileManagerFactory;
 
-    /**
-     * Constructs an HTTP server on given port.
-     */
-    public NanoHTTPD(int port) {
-        this(null, port);
+    public NanoHTTPD() {
+        this(0);
     }
 
-    // -------------------------------------------------------------------------------
-    // //
-    //
-    // Threading Strategy.
-    //
-    // -------------------------------------------------------------------------------
-    // //
+    public NanoHTTPD(int port) {
+        this(port, SOCKET_READ_TIMEOUT);
+    }
 
-    /**
-     * Constructs an HTTP server on given hostname and port.
-     */
-    public NanoHTTPD(String hostname, int port) {
-        this.hostname = hostname;
-        this.myPort = port;
+    public NanoHTTPD(int port, int timeout) {
+        this((InetAddress) null, port, timeout);
+    }
+
+    public NanoHTTPD(String host, int port) throws UnknownHostException {
+        this(host, port, SOCKET_READ_TIMEOUT);
+    }
+
+    public NanoHTTPD(String host, int port, int timeout) throws UnknownHostException {
+        this(InetAddress.getByName(host), port, timeout);
+    }
+
+    public NanoHTTPD(InetAddress address, int port, int timeout) {
+        this(new DefaultServerSocketFactory(address, port, timeout));
+    }
+
+    public NanoHTTPD(ServerSocketFactory socketFactory) {
+        if (socketFactory == null)
+            throw new NullPointerException("Socket factory cannot be null.");
+
+        mServerSocketFactory = socketFactory;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         setAsyncRunner(new DefaultAsyncRunner());
 
@@ -382,23 +303,23 @@ public abstract class NanoHTTPD {
      * create a instance of the client handler, subclasses can return a subclass
      * of the ClientHandler.
      *
-     * @param finalAccept the socket the cleint is connected to
-     * @param inputStream the input stream
+     * @param clientSocket the socket representing the client
+     * @param inputStream  the input stream
      * @return the client handler
      */
-    protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
-        return new ClientHandler(this, inputStream, finalAccept);
+    protected ClientHandler createClientHandler(final Socket clientSocket, final InputStream inputStream) {
+        return new ClientHandler(this, inputStream, clientSocket);
     }
 
     /**
      * Instantiate the server runnable, can be overwritten by subclasses to
      * provide a subclass of the ServerRunnable.
      *
-     * @param timeout the socet timeout to use.
      * @return the server runnable.
      */
-    protected ServerRunnable createServerRunnable(final int timeout) {
-        return new ServerRunnable(this, timeout);
+    // TODO: 22.04.2020 Improve the usage of ServerRunnable
+    protected ServerRunnable createServerRunnable() {
+        return new ServerRunnable(this);
     }
 
     /**
@@ -455,44 +376,36 @@ public abstract class NanoHTTPD {
      * "foo bar"
      */
     public static String decodePercent(String str) {
-        String decoded = null;
         try {
-            decoded = URLDecoder.decode(str, "UTF8");
-        } catch (UnsupportedEncodingException ignored) {
-            NanoHTTPD.LOG.log(Level.WARNING, "Encoding not supported, ignored", ignored);
+            return URLDecoder.decode(str, "UTF8");
+        } catch (UnsupportedEncodingException e) {
+            NanoHTTPD.LOG.log(Level.WARNING, "Encoding not supported, ignored", e);
         }
-        return decoded;
+        return null;
     }
 
     public final int getListeningPort() {
-        return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
-    }
-
-    public final boolean isAlive() {
-        return wasStarted() && !this.myServerSocket.isClosed() && this.myThread.isAlive();
+        return mServerSocket == null ? mServerSocketFactory.getBindPort() : mServerSocket.getLocalPort();
     }
 
     public FactoryThrowing<ServerSocket, IOException> getServerSocketFactory() {
-        return serverSocketFactory;
-    }
-
-    public void setServerSocketFactory(FactoryThrowing<ServerSocket, IOException> serverSocketFactory) {
-        this.serverSocketFactory = serverSocketFactory;
-    }
-
-    public String getHostname() {
-        return hostname;
+        return mServerSocketFactory;
     }
 
     public Factory<TempFileManager> getTempFileManagerFactory() {
-        return tempFileManagerFactory;
+        return mTempFileManagerFactory;
     }
 
-    /**
-     * Call before start() to serve over HTTPS instead of HTTP
-     */
-    public void makeSecure(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
-        this.serverSocketFactory = new SecureServerSocketFactory(sslServerSocketFactory, sslProtocols);
+    public final boolean isListening() {
+        return mServerSocket != null && !mServerSocket.isClosed() && mServerThread.isAlive();
+    }
+
+    public final boolean isServerThreadInterrupted() {
+        return mServerThread == null || mServerThread.isInterrupted();
+    }
+
+    public final boolean isServerThreadAlive() {
+        return mServerThread != null && mServerThread.isAlive();
     }
 
     /**
@@ -539,56 +452,52 @@ public abstract class NanoHTTPD {
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
      *
-     * @param tempFileManagerFactory new strategy for handling temp files.
+     * @param factory new strategy for handling temp files.
      */
-    public void setTempFileManagerFactory(Factory<TempFileManager> tempFileManagerFactory) {
-        this.tempFileManagerFactory = tempFileManagerFactory;
+    public void setTempFileManagerFactory(Factory<TempFileManager> factory) {
+        mTempFileManagerFactory = factory;
     }
 
-    /**
-     * Start the server.
-     *
-     * @throws IOException if the socket is in use.
-     */
     public void start() throws IOException {
-        start(NanoHTTPD.SOCKET_READ_TIMEOUT);
-    }
-
-    /**
-     * Starts the server (in setDaemon(true) mode).
-     */
-    public void start(final int timeout) throws IOException {
-        start(timeout, true);
+        start(true);
     }
 
     /**
      * Start the server.
      *
-     * @param timeout timeout to use for socket connections.
-     * @param daemon  start the thread daemon or not.
-     * @throws IOException if the socket is in use.
+     * @param daemon start the thread as daemon or not.
+     * @throws IOException when anything related to socket is gone wrong.
      */
-    public void start(final int timeout, boolean daemon) throws IOException {
-        this.myServerSocket = this.getServerSocketFactory().create();
-        this.myServerSocket.setReuseAddress(true);
+    public void start(boolean daemon) throws IOException {
+        mServerSocket = getServerSocketFactory().create();
+        mServerSocket.setReuseAddress(true);
 
-        ServerRunnable serverRunnable = createServerRunnable(timeout);
-        this.myThread = new Thread(serverRunnable);
-        this.myThread.setDaemon(daemon);
-        this.myThread.setName("NanoHttpd Main Listener");
-        this.myThread.start();
-        while (!serverRunnable.hasBinded() && serverRunnable.getBindException() == null) {
-            try {
-                Thread.sleep(10L);
-            } catch (Throwable e) {
-                // on android this may not be allowed, that's why we
-                // catch throwable the wait should be very short because we are
-                // just waiting for the bind of the socket
-            }
-        }
-        if (serverRunnable.getBindException() != null) {
-            throw serverRunnable.getBindException();
-        }
+        ServerRunnable serverRunnable = createServerRunnable();
+        mServerThread = new Thread(serverRunnable);
+        mServerThread.setDaemon(daemon);
+        mServerThread.setName("uduhttpd daemon");
+        mServerThread.start();
+    }
+
+    /**
+     * Start the server while ensuring it has started listening. That this returns as soon as the server starts
+     * listening and does not care if waitForStart milliseconds has passed or not.
+     *
+     * @param daemon       start the thread as daemon or not.
+     * @param waitForStart milliseconds to wait before giving up.
+     * @throws IOException      when anything related to socket goes wrong.
+     * @throws TimeoutException when the given waitForStart time is exceeded, but the server did not start listening.
+     */
+    public void start(boolean daemon, int waitForStart) throws IOException, TimeoutException {
+        if (waitForStart < 1)
+            throw new IllegalArgumentException("The time to wait cannot be smaller than 1.");
+
+        start(daemon);
+
+        long failAt = (long) (System.nanoTime() + (waitForStart * 1e6));
+        while (!isListening())
+            if (System.nanoTime() > failAt)
+                throw new TimeoutException("Could not start the server in the given time.");
     }
 
     /**
@@ -596,17 +505,13 @@ public abstract class NanoHTTPD {
      */
     public void stop() {
         try {
-            safeClose(this.myServerSocket);
+            safeClose(this.mServerSocket);
             this.asyncRunner.closeAll();
-            if (this.myThread != null) {
-                this.myThread.join();
+            if (this.mServerThread != null) {
+                this.mServerThread.join();
             }
         } catch (Exception e) {
             NanoHTTPD.LOG.log(Level.SEVERE, "Could not stop all connections", e);
         }
-    }
-
-    public final boolean wasStarted() {
-        return this.myServerSocket != null && this.myThread != null;
     }
 }

@@ -64,7 +64,7 @@ public class DefaultAsyncRunner implements AsyncRunner {
     @Override
     public void closeAll() {
         // copy of the list for concurrency
-        for (ClientHandler clientHandler : new ArrayList<ClientHandler>(this.running)) {
+        for (ClientHandler clientHandler : new ArrayList<>(this.running)) {
             clientHandler.close();
         }
     }

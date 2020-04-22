@@ -48,9 +48,9 @@ public class ServerRunner {
 
     public static void executeInstance(NanoHTTPD server) {
         try {
-            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
+            server.start( false);
+        } catch (IOException e) {
+            e.printStackTrace();
             System.exit(-1);
         }
 

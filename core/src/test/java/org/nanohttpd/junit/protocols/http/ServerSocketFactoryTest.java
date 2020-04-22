@@ -3,8 +3,9 @@ package org.nanohttpd.junit.protocols.http;
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
 import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
-import org.nanohttpd.util.FactoryThrowing;
+import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,46 +49,35 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
     public static final int PORT = 8192;
 
     public ServerSocketFactoryTest() {
-        super(PORT);
-
-        this.setServerSocketFactory(new TestFactory());
+        super(new TestFactory());
     }
 
     @Test
     public void isCustomServerSocketFactory() {
-        System.out.println("CustomServerSocketFactory test");
-        Assert.assertTrue(this.getServerSocketFactory() instanceof TestFactory);
+        Assert.assertTrue(getServerSocketFactory() instanceof TestFactory);
     }
 
     @Test
-    public void testCreateServerSocket() {
-        System.out.println("CreateServerSocket test");
-        ServerSocket ss = null;
-        try {
-            ss = this.getServerSocketFactory().create();
-        } catch (IOException e) {
-        }
-
-        Assert.assertNotNull(ss);
+    public void testCreateServerSocket() throws IOException {
+        Assert.assertNotNull(getServerSocketFactory().create());
     }
 
     @Test
     public void testSSLServerSocketFail() {
-        String[] protocols = {
-                ""
-        };
+        String[] protocols = {""};
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
-        FactoryThrowing<ServerSocket, IOException> ssFactory = new SecureServerSocketFactory(null, protocols);
-        ServerSocket ss = null;
+        ServerSocketFactory ssFactory = new SecureServerSocketFactory(null, protocols);
         try {
-            ss = ssFactory.create();
-        } catch (Exception e) {
+            ssFactory.create();
+            Assert.fail();
+        } catch (Exception ignored) {
         }
-        Assert.assertTrue(ss == null);
-
     }
 
-    private class TestFactory implements FactoryThrowing<ServerSocket, IOException> {
+    private static class TestFactory extends DefaultServerSocketFactory {
+        public TestFactory() {
+            super(null, PORT, NanoHTTPD.SOCKET_READ_TIMEOUT);
+        }
 
         @Override
         public ServerSocket create() {

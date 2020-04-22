@@ -33,19 +33,23 @@ package org.nanohttpd.protocols.http.sockets;
  * #L%
  */
 
-import org.nanohttpd.util.FactoryThrowing;
-
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 
 /**
  * Creates a normal ServerSocket for TCP connections
  */
-public class DefaultServerSocketFactory implements FactoryThrowing<ServerSocket, IOException> {
+public class DefaultServerSocketFactory extends ServerSocketFactoryImpl {
+    public DefaultServerSocketFactory(InetAddress bindAddress, int bindPort, int timeout) {
+        super(bindAddress, bindPort, timeout);
+    }
 
     @Override
     public ServerSocket create() throws IOException {
-        return new ServerSocket();
+        ServerSocket serverSocket = new ServerSocket(getBindPort(), 0, getBindAddress());
+        if (getSoTimeout() > 0)
+            serverSocket.setSoTimeout(getSoTimeout());
+        return serverSocket;
     }
-
 }

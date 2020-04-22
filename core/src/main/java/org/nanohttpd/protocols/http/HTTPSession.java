@@ -33,9 +33,9 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.ResponseException;
 
 import java.io.IOException;
 import java.io.InputStream;

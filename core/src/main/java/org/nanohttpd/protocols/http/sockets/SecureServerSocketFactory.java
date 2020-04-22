@@ -33,40 +33,39 @@ package org.nanohttpd.protocols.http.sockets;
  * #L%
  */
 
-import org.nanohttpd.util.FactoryThrowing;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 
 /**
  * Creates a new SSLServerSocket
  */
-public class SecureServerSocketFactory implements FactoryThrowing<ServerSocket, IOException> {
+public class SecureServerSocketFactory extends ServerSocketFactoryImpl {
+    private final SSLServerSocketFactory mServerSocketFactory;
+    private final String[] mSslProtocols;
 
-    private final SSLServerSocketFactory sslServerSocketFactory;
-
-    private final String[] sslProtocols;
+    public SecureServerSocketFactory(InetAddress bindAddress, int bindPort, int timeout,
+                                     SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
+        super(bindAddress, bindPort, timeout);
+        mServerSocketFactory = sslServerSocketFactory;
+        mSslProtocols = sslProtocols;
+    }
 
     public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
-        this.sslServerSocketFactory = sslServerSocketFactory;
-        this.sslProtocols = sslProtocols;
+        this(null, 0 , NanoHTTPD.SOCKET_READ_TIMEOUT, sslServerSocketFactory, sslProtocols);
     }
 
     @Override
     public ServerSocket create() throws IOException {
-        SSLServerSocket ss = null;
-        ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
-        if (this.sslProtocols != null) {
-            ss.setEnabledProtocols(this.sslProtocols);
-        } else {
-            ss.setEnabledProtocols(ss.getSupportedProtocols());
-        }
-        ss.setUseClientMode(false);
-        ss.setWantClientAuth(false);
-        ss.setNeedClientAuth(false);
-        return ss;
+        SSLServerSocket serverSocket = (SSLServerSocket) mServerSocketFactory.createServerSocket();
+        serverSocket.setEnabledProtocols(mSslProtocols != null ? mSslProtocols : serverSocket.getSupportedProtocols());
+        serverSocket.setUseClientMode(false);
+        serverSocket.setWantClientAuth(false);
+        serverSocket.setNeedClientAuth(false);
+        return serverSocket;
     }
-
 }

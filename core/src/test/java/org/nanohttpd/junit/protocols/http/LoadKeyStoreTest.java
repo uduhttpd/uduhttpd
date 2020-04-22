@@ -4,6 +4,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.sockets.SecureSockets;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
@@ -56,7 +57,8 @@ public class LoadKeyStoreTest {
         InputStream resourceAsStream = this.getClass().getResourceAsStream(keyStorePath);
         assertNotNull(resourceAsStream);
 
-        SSLServerSocketFactory sslServerSocketFactory = NanoHTTPD.makeSSLSocketFactory(keyStorePath, "password".toCharArray());
+        SSLServerSocketFactory sslServerSocketFactory = SecureSockets.createServerSocketFactory(keyStorePath,
+                "password".toCharArray());
         assertNotNull(sslServerSocketFactory);
     }
 
@@ -67,7 +69,7 @@ public class LoadKeyStoreTest {
         assertNotNull(resourceAsStream);
 
         thrown.expect(IOException.class);
-        NanoHTTPD.makeSSLSocketFactory(keyStorePath, "wrongpassword".toCharArray());
+        SecureSockets.createServerSocketFactory(keyStorePath, "wrongpassword".toCharArray());
     }
 
     @Test
@@ -77,7 +79,7 @@ public class LoadKeyStoreTest {
         assertNull(resourceAsStream);
 
         thrown.expect(IOException.class);
-        NanoHTTPD.makeSSLSocketFactory(nonExistentPath, "".toCharArray());
+        SecureSockets.createServerSocketFactory(nonExistentPath, "".toCharArray());
     }
 
 }

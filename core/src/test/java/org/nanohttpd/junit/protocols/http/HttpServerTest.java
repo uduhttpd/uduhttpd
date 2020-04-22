@@ -16,6 +16,7 @@ import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
 
@@ -95,6 +97,10 @@ public class HttpServerTest {
 
         public TestServer(int port) {
             super(port);
+        }
+
+        public TestServer(ServerSocketFactory socketFactory) {
+            super(socketFactory);
         }
 
         public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream,
@@ -179,7 +185,7 @@ public class HttpServerTest {
     }
 
     protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         String line = "";
         while (line != null) {
             line = reader.readLine();
@@ -232,7 +238,8 @@ public class HttpServerTest {
                     return Response.newFixedLengthResponse(responseMsg.toString());
                 }
             };
-            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+            server.start();
 
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost("http://localhost:" + testPort);
@@ -266,11 +273,10 @@ public class HttpServerTest {
     }
 
     @Test
-    public void testTempFileInterface() throws IOException {
+    public void testTempFileInterface() throws IOException, TimeoutException {
         final int testPort = 4589;
         NanoHTTPD server = new NanoHTTPD(testPort) {
-
-            final Map<String, String> files = new HashMap<String, String>();
+            final Map<String, String> files = new HashMap<>();
 
             @Override
             public Response serve(HTTPSession session) {
@@ -290,7 +296,8 @@ public class HttpServerTest {
                 return Response.newFixedLengthResponse(responseMsg);
             }
         };
-        server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+        server.start(false, 2000);
 
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost("http://localhost:" + testPort);

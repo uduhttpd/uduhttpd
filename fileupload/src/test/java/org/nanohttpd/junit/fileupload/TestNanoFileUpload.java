@@ -78,11 +78,11 @@ import java.util.Map;
  * @author ritchieGitHub
  */
 @FixMethodOrder
-public class TestNanoFileUpLoad {
+public class TestNanoFileUpload {
 
-    private static final String UPLOAD_JAVA_FILE = "src/test/java/" + TestNanoFileUpLoad.class.getName().replace('.', '/') + ".java";
+    private static final String UPLOAD_JAVA_FILE = "src/test/java/" + TestNanoFileUpload.class.getName().replace('.', '/') + ".java";
 
-    private static final URL TEST_FILE1 = TestNanoFileUpLoad.class.getResource("/Smugglers 'n Caregivers 'n Loners \"Unchained\".txt");
+    private static final URL TEST_FILE1 = TestNanoFileUpload.class.getResource("/Smugglers 'n Caregivers 'n Loners \"Unchained\".txt");
 
     protected TestServer testServer;
 
@@ -111,11 +111,13 @@ public class TestNanoFileUpLoad {
             uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
-        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream,
+                                             OutputStream outputStream) {
             return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        public HTTPSessionImpl createSession(TempFileManager tempFileManager, InputStream inputStream,
+                                             OutputStream outputStream, InetAddress inetAddress) {
             return new HTTPSessionImpl(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 

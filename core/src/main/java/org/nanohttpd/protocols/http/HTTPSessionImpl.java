@@ -33,12 +33,12 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.ResponseException;
 import org.nanohttpd.protocols.http.tempfiles.TempFile;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
