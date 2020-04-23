@@ -95,7 +95,7 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
                 NanoHTTPD.SOCKET_READ_TIMEOUT, getDefaultSslServerSocketFactory(), null);
         this.testServer = new TestServer(factory);
         this.tempFileManager = new TestTempFileManager();
-        this.testServer.start(true, 4000);
+        this.testServer.start();
     }
 
     @After

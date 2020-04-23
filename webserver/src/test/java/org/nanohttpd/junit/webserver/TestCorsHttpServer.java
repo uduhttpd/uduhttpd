@@ -43,8 +43,10 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.webserver.SimpleWebServer;
 
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.UnknownHostException;
@@ -71,7 +73,7 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
                 String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors"};
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException | TimeoutException e) {
+                } catch (IOException | ServerStartException e) {
                     e.printStackTrace();
                 }
             }

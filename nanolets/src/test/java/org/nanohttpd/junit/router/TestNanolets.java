@@ -8,18 +8,18 @@ package org.nanohttpd.junit.router;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * 
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -72,8 +72,6 @@ public class TestNanolets {
             }
         });
         serverStartThread.start();
-        // give the server some tine to start.
-        Thread.sleep(200);
     }
 
     public static void main(String[] args) {
@@ -182,7 +180,7 @@ public class TestNanolets {
     public void doUriSelection1() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
-        HttpGet httpget = new HttpGet("http://localhost:9090/user/help");
+        HttpGet httpget = new HttpGet("http://localhost:9090/toBeDeleted");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), StandardCharsets.UTF_8);
@@ -376,50 +374,42 @@ public class TestNanolets {
 
     @Test
     public void testGeneralHandlerGetStatus() {
-        Assert.assertEquals("GeneralHandler#getStatus should return OK status", DefaultStatusCode.OK,
-                new RouterNanoHTTPD.GeneralHandler().getStatus());
+        Assert.assertEquals("GeneralHandler#getStatus should return OK status", DefaultStatusCode.OK, new RouterNanoHTTPD.GeneralHandler().getStatus());
     }
 
     @Test
     public void testStaticPageHandlerGetStatus() {
-        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", DefaultStatusCode.OK,
-                new RouterNanoHTTPD.StaticPageHandler().getStatus());
+        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", DefaultStatusCode.OK, new RouterNanoHTTPD.StaticPageHandler().getStatus());
     }
 
     @Test
     public void testError404UriHandlerGetStatus() {
-        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", DefaultStatusCode.NOT_FOUND,
-                new RouterNanoHTTPD.Error404UriHandler().getStatus());
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", DefaultStatusCode.NOT_FOUND, new RouterNanoHTTPD.Error404UriHandler().getStatus());
     }
 
     @Test
     public void testError404UriHandlerGetMimeType() {
-        Assert.assertEquals("Error404UriHandler mime type should be text/html", "text/html",
-                new RouterNanoHTTPD.Error404UriHandler().getMimeType());
+        Assert.assertEquals("Error404UriHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.Error404UriHandler().getMimeType());
     }
 
     @Test
     public void testNotImplementedHandlerGetStatus() {
-        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", DefaultStatusCode.OK,
-                new RouterNanoHTTPD.NotImplementedHandler().getStatus());
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", DefaultStatusCode.OK, new RouterNanoHTTPD.NotImplementedHandler().getStatus());
     }
 
     @Test
     public void testIndexHandlerGetStatus() {
-        Assert.assertEquals("IndexHandler#getStatus should return OK status", DefaultStatusCode.OK,
-                new RouterNanoHTTPD.IndexHandler().getStatus());
+        Assert.assertEquals("IndexHandler#getStatus should return OK status", DefaultStatusCode.OK, new RouterNanoHTTPD.IndexHandler().getStatus());
     }
 
     @Test
     public void testIndexHandlerGetMimeType() {
-        Assert.assertEquals("IndexHandler mime type should be text/html", "text/html",
-                new RouterNanoHTTPD.IndexHandler().getMimeType());
+        Assert.assertEquals("IndexHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.IndexHandler().getMimeType());
     }
 
     @Test
     public void testNotImplementedHandlerGetMimeType() {
-        Assert.assertEquals("NotImplementedHandler mime type should be text/html", "text/html",
-                new RouterNanoHTTPD.NotImplementedHandler().getMimeType());
+        Assert.assertEquals("NotImplementedHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.NotImplementedHandler().getMimeType());
     }
 
     @Test

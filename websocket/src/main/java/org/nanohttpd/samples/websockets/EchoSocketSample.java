@@ -33,6 +33,7 @@ package org.nanohttpd.samples.websockets;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.websockets.NanoWSD;
 
 import java.io.IOException;
@@ -40,10 +41,10 @@ import java.util.concurrent.TimeoutException;
 
 public class EchoSocketSample {
 
-    public static void main(String[] args) throws IOException, TimeoutException {
+    public static void main(String[] args) throws ServerStartException {
         final boolean debugMode = args.length >= 2 && "-d".equals(args[1].toLowerCase());
         NanoWSD ws = new DebugWebSocketServer(args.length > 0 ? Integer.parseInt(args[0]) : 9090, debugMode);
-        ws.start(2000);
+        ws.start();
         System.out.println("Server started, hit Enter to stop.\n");
         try {
             System.in.read();

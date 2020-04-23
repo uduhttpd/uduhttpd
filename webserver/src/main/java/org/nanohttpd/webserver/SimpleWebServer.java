@@ -39,6 +39,7 @@ import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.StatusCode;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.util.ServerRunner;
 
 import java.io.*;
@@ -80,12 +81,12 @@ public class SimpleWebServer extends NanoHTTPD {
         LICENCE = text;
     }
 
-    private static final Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
+    private static final Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<>();
 
     /**
      * Starts as a standalone file server and waits for Enter.
      */
-    public static void main(String[] args) throws UnknownHostException, TimeoutException {
+    public static void main(String[] args) throws IOException, ServerStartException {
         // Defaults
         int port = 8080;
 

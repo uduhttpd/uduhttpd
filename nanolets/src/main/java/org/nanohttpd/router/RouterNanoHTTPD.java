@@ -8,18 +8,18 @@ package org.nanohttpd.router;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * 
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -224,8 +224,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 try {
                     return Response.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
                 } catch (IOException ioe) {
-                    return Response.newFixedLengthResponse(DefaultStatusCode.REQUEST_TIMEOUT, "text/plain",
-                            (String) null);
+                    return Response.newFixedLengthResponse(DefaultStatusCode.REQUEST_TIMEOUT, "text/plain", (String) null);
                 }
             }
         }
@@ -354,8 +353,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             int start = 0;
             while (matcher.find(start)) {
                 uriParams.add(patternUri.substring(matcher.start() + 1, matcher.end()));
-                patternUri = patternUri.substring(0, matcher.start()) + PARAM_MATCHER +
-                        patternUri.substring(matcher.end());
+                patternUri = patternUri.substring(0, matcher.start()) + PARAM_MATCHER + patternUri.substring(matcher.end());
                 start = matcher.start() + PARAM_MATCHER.length();
                 matcher = PARAM_PATTERN.matcher(patternUri);
             }
@@ -382,8 +380,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                                 return responder.other(session.getMethod().toString(), this, urlParams, session);
                         }
                     } else {
-                        return Response.newFixedLengthResponse(DefaultStatusCode.OK, "text/plain",
-                                "Return: " + handler.getCanonicalName() + ".toString() -> " + object);
+                        return Response.newFixedLengthResponse(DefaultStatusCode.OK, "text/plain", "Return: " + handler.getCanonicalName() + ".toString() -> " + object);
                     }
                 } catch (Exception e) {
                     error = "Error: " + e.getClass().getName() + " : " + e.getMessage();
@@ -555,7 +552,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * e.g. mapping 1 = /user/:id mapping 2 = /user/help if the incoming uri
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
-         *
+         * 
          * @return
          */
         public Response process(HTTPSession session) {
@@ -603,7 +600,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     /**
      * default routings, they are over writable.
-     *
+     * 
      * <pre>
      * router.setNotFoundHandler(GeneralHandler.class);
      * </pre>

@@ -17,6 +17,7 @@ import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
@@ -178,7 +179,7 @@ public class HttpServerTest {
         try {
             session.execute();
         } catch (IOException e) {
-            fail("" + e);
+            fail(e.toString());
             e.printStackTrace();
         }
         return outputStream;
@@ -200,11 +201,13 @@ public class HttpServerTest {
     public void setUp() throws Exception {
         this.testServer = new TestServer();
         this.tempFileManager = new TestTempFileManager();
+        this.testServer.start();
     }
 
     @After
     public void tearDown() {
         this.tempFileManager._clear();
+        this.testServer.stop();
     }
 
     @Test
@@ -212,15 +215,21 @@ public class HttpServerTest {
         assertNotNull(this.testServer);
     }
 
+    @Test(expected = ServerStartException.class)
+    public void testFailsCorrectlyWhenPortUnavailable() throws ServerStartException {
+        TestServer localServer = new TestServer();
+        localServer.start();
+    }
+
     @Test
-    public void testMultipartFormData() throws IOException, TimeoutException {
+    public void testMultipartFormData() throws IOException, ServerStartException {
         final int testPort = 4589;
         NanoHTTPD server = null;
 
         try {
             server = new NanoHTTPD(testPort) {
 
-                final Map<String, String> files = new HashMap<String, String>();
+                final Map<String, String> files = new HashMap<>();
 
                 @Override
                 public Response serve(HTTPSession session) {
@@ -273,7 +282,7 @@ public class HttpServerTest {
     }
 
     @Test
-    public void testTempFileInterface() throws IOException, TimeoutException {
+    public void testTempFileInterface() throws IOException, ServerStartException {
         final int testPort = 4589;
         NanoHTTPD server = new NanoHTTPD(testPort) {
             final Map<String, String> files = new HashMap<>();
@@ -297,7 +306,7 @@ public class HttpServerTest {
             }
         };
 
-        server.start(false, 2000);
+        server.start();
 
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost("http://localhost:" + testPort);
@@ -331,6 +340,6 @@ public class HttpServerTest {
     @Test
     public void testServerStops() throws TimeoutException {
         testServer.stop();
-        Assert.assertFalse(testServer.isListening());
+        Assert.assertTrue(!testServer.isListening() && testServer.getServerSocket() == null);
     }
 }

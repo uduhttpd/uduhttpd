@@ -37,8 +37,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:02 PM
@@ -52,14 +54,10 @@ public abstract class IntegrationTestBase<T extends NanoHTTPD> {
     public abstract T createTestServer();
 
     @Before
-    public void setUp() {
+    public void setUp() throws ServerStartException {
         this.testServer = createTestServer();
         this.httpclient = new DefaultHttpClient();
-        try {
-            this.testServer.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.testServer.start();
     }
 
     @After

@@ -34,11 +34,11 @@ package org.nanohttpd.protocols.http;
  */
 
 import org.nanohttpd.concurrent.util.RegistrarRunnable;
-import org.nanohttpd.protocols.http.client.ClientRequestExecutor;
-import org.nanohttpd.protocols.http.client.ClientRequestExecutorFactory;
-import org.nanohttpd.protocols.http.client.DefaultClientRequestExecutorFactory;
+import org.nanohttpd.protocols.http.client.*;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.server.DefaultServerExecutor;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
 import org.nanohttpd.protocols.http.sockets.ServerSocketFactory;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
@@ -52,7 +52,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -217,16 +218,18 @@ public abstract class NanoHTTPD {
         }
     }
 
+    protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
+
+    private final List<ClientRequestExecutor> activeClientConnectionList = Collections.synchronizedList(
+            new ArrayList<ClientRequestExecutor>());
+
+    private ExecutorServiceFactory clientRequestExecutorServiceFactory;
+
     private ExecutorService clientRequestExecutorService;
 
     private ClientRequestExecutorFactory clientRequestExecutorFactory;
 
     private Handler<HTTPSession, Response> httpHandler;
-
-    protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
-
-    private List<ClientRequestExecutor> activeClientConnectionList = Collections.synchronizedList(
-            new ArrayList<ClientRequestExecutor>());
 
     private ServerSocket serverSocket;
 
@@ -276,23 +279,12 @@ public abstract class NanoHTTPD {
         };
     }
 
-    public void setHTTPHandler(Handler<HTTPSession, Response> handler) {
-        this.httpHandler = handler;
-    }
-
     public void addHTTPInterceptor(Handler<HTTPSession, Response> interceptor) {
         interceptors.add(interceptor);
     }
 
-    /**
-     * Instantiate the server runnable, can be overwritten by subclasses to
-     * provide a subclass of the ServerRunnable.
-     *
-     * @return the server runnable.
-     */
-    // TODO: 22.04.2020 Improve the usage of ServerRunnable
-    protected ServerRunnable createServerRunnable() {
-        return new ServerRunnable(this);
+    protected ServerExecutor createServerExecutor() {
+        return new DefaultServerExecutor(this);
     }
 
     /**
@@ -341,6 +333,8 @@ public abstract class NanoHTTPD {
         return parms;
     }
 
+    // TODO: 23.04.2020 Remove this and use the charset that is used by the library
+
     /**
      * Decode percent encoded <code>String</code> values.
      *
@@ -358,11 +352,17 @@ public abstract class NanoHTTPD {
     }
 
     public ExecutorService getClientRequestExecutorService() {
-        if (clientRequestExecutorService == null)
-            clientRequestExecutorService = new ThreadPoolExecutor(3, 40, 5, TimeUnit.SECONDS,
-                    new LinkedBlockingDeque<Runnable>());
+        if (clientRequestExecutorService == null || clientRequestExecutorService.isShutdown())
+            clientRequestExecutorService = getClientRequestExecutorServiceFactory().create();
 
         return clientRequestExecutorService;
+    }
+
+    public ExecutorServiceFactory getClientRequestExecutorServiceFactory() {
+        if (clientRequestExecutorServiceFactory == null)
+            clientRequestExecutorServiceFactory = new DefaultExecutorServiceFactory();
+
+        return clientRequestExecutorServiceFactory;
     }
 
     public ClientRequestExecutorFactory getClientRequestExecutorFactory() {
@@ -392,15 +392,11 @@ public abstract class NanoHTTPD {
     }
 
     public final boolean isListening() {
-        return serverSocket != null && serverSocket.isBound() && serverThread.isAlive();
+        return serverSocket != null && serverThread != null && serverSocket.isBound() && serverThread.isAlive();
     }
 
-    public final boolean isServerThreadInterrupted() {
-        return serverThread == null || serverThread.isInterrupted();
-    }
-
-    public final boolean isAlive() {
-        return serverThread != null && serverThread.isAlive();
+    public final boolean isInterrupted() {
+        return serverThread == null || serverThread.isInterrupted() || serverSocket == null || serverSocket.isClosed();
     }
 
     /**
@@ -440,10 +436,13 @@ public abstract class NanoHTTPD {
         return Response.newFixedLengthResponse(DefaultStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 
-    public void setClientRequestExecutorService(ExecutorService executorService) {
-        clientRequestExecutorService = executorService;
+    public void setClientRequestExecutorFactory(ClientRequestExecutorFactory factory) {
+        clientRequestExecutorFactory = factory;
     }
 
+    public void setHTTPHandler(Handler<HTTPSession, Response> handler) {
+        this.httpHandler = handler;
+    }
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
@@ -454,65 +453,56 @@ public abstract class NanoHTTPD {
         tempFileManagerFactory = factory;
     }
 
-    public void start() throws IOException {
-        start(true);
+    public void start() throws ServerStartException {
+        try {
+            start(false, 0);
+        } catch (TimeoutException ignored) {
+            // Cannot reach here because, unless the server is started, it will not return. (blocks)
+        }
     }
 
     /**
-     * Start the server.
+     * Start listening for connections.
      *
-     * @param daemon start the thread as daemon or not.
-     * @throws IOException when anything related to socket is gone wrong.
+     * @param daemon       set {@link Thread#setDaemon(boolean)}.
+     * @param waitForStart the time in milliseconds that we will wait until the server starts listening. '0' will mean
+     *                     it will wait forever unless it starts. This will return as soon as the server starts
+     *                     listening and doesn't mean that the server will take as long to start.
+     * @throws TimeoutException when the value given for waitForStart is bigger than 0 zero and the server did not start
+     *                          under the given time.
      */
-    public void start(boolean daemon) throws IOException {
-        serverSocket = getServerSocketFactory().create();
-        serverSocket.setReuseAddress(true);
+    public void start(boolean daemon, int waitForStart) throws TimeoutException, ServerStartException {
+        if (isListening())
+            throw new IllegalStateException("The server is already running.");
 
-        ServerRunnable serverRunnable = createServerRunnable();
-        serverThread = new Thread(serverRunnable);
+        if (waitForStart < 0)
+            throw new IllegalArgumentException("The time to wait cannot be smaller than 1.");
+
+        ServerExecutor executor = createServerExecutor();
+        serverThread = new Thread(executor);
         serverThread.setDaemon(daemon);
         serverThread.setName("uduhttpd daemon");
         serverThread.start();
-    }
 
-    /**
-     * Start the server and ensure that it has started listening. Beware that this returns as soon as the server starts
-     * listening and does not care if waitForStart milliseconds has passed or not.
-     *
-     * @param daemon       start the thread as daemon or not.
-     * @param waitForStart milliseconds to wait before giving up.
-     * @throws IOException      when anything related to socket goes wrong.
-     * @throws TimeoutException when the given waitForStart time is exceeded, but the server did not start listening.
-     */
-    public void start(boolean daemon, int waitForStart) throws IOException, TimeoutException {
-        if (waitForStart < 1)
-            throw new IllegalArgumentException("The time to wait cannot be smaller than 1.");
+        long startTime = System.nanoTime();
+        while (!isListening()) {
+            if (executor.getStartError() != null)
+                throw executor.getStartError();
 
-        start(daemon);
-
-        long failAt = (long) (System.nanoTime() + (waitForStart * 1e6));
-        while (!isListening() || !isAlive())
-            if (System.nanoTime() > failAt)
-                throw new TimeoutException("Could not start the server in the given time.");
-    }
-
-    /**
-     * Start the server and ensure that it has started listening. Beware that this returns as soon as the server starts
-     * listening and does not care if waitForStart milliseconds has passed or not.
-     *
-     * @param waitForStart milliseconds to wait before giving up.
-     * @throws IOException      when anything related to socket goes wrong.
-     * @throws TimeoutException when the given waitForStart time is exceeded, but the server did not start listening.
-     */
-    public void start(int waitForStart) throws IOException, TimeoutException {
-        start(true, waitForStart);
+            if (waitForStart > 0 && (System.nanoTime() - startTime) > waitForStart * 1e6)
+                throw new TimeoutException("Could not start the server in time.");
+        }
     }
 
     /**
      * Stop listening for connections and wait for the thread to exit.
      */
     public void stop() {
-        stop(0);
+        try {
+            stop(0);
+        } catch (TimeoutException e) {
+            // Cannot reach here because, unless the server is stopped, it will not return. (blocks)
+        }
     }
 
     /**
@@ -520,26 +510,60 @@ public abstract class NanoHTTPD {
      *
      * @param wait time before giving up. '0' to wait indefinitely
      */
-    public void stop(int wait) {
-        if (isListening()) {
-            safeClose(serverSocket);
-            getClientRequestExecutorService().shutdown();
+    public void stop(int wait) throws TimeoutException {
+        safeClose(serverSocket);
+        serverSocket = null;
 
+        if (isListening()) {
             if (activeClientConnectionList.size() > 0) {
                 List<ClientRequestExecutor> copyList = new ArrayList<>(activeClientConnectionList);
                 for (ClientRequestExecutor requestExecutor : copyList)
                     safeClose(requestExecutor);
             }
 
-            if (isAlive()) {
+            if (serverThread != null && serverThread.isAlive()) {
                 try {
                     serverThread.join(wait);
+                    if (serverThread.isAlive())
+                        throw new TimeoutException("Could not stop the server in time.");
+
                     serverThread = null;
                 } catch (InterruptedException ignored) {
+
                 }
             }
-
-            serverSocket = null;
         }
+    }
+
+    public abstract static class ServerExecutor implements Runnable {
+        private ServerStartException startException = null;
+
+        @Override
+        public final void run() {
+            NanoHTTPD server = getServer();
+
+            try {
+                server.serverSocket = server.getServerSocketFactory().create();
+
+                try {
+                    serve(server.getServerSocket());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                startException = new ServerStartException("The server thread did not start during initialization of " +
+                        "the socket. See the cause error for details.", e);
+            } finally {
+                safeClose(server.getServerSocket());
+            }
+        }
+
+        protected abstract NanoHTTPD getServer();
+
+        public ServerStartException getStartError() {
+            return startException;
+        }
+
+        protected abstract void serve(ServerSocket serverSocket);
     }
 }

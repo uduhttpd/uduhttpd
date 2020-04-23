@@ -42,6 +42,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.webserver.SimpleWebServer;
 
 import java.io.FileInputStream;
@@ -71,7 +72,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
                 String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources"};
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException | TimeoutException e) {
+                } catch (IOException | ServerStartException e) {
                     e.printStackTrace();
                 }
             }
@@ -157,7 +158,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
                 String[] args = {"-h", "localhost", "-p", testPort, "-d", "src/test/resources"};
                 try {
                     SimpleWebServer.main(args);
-                } catch (UnknownHostException | TimeoutException e) {
+                } catch (IOException | ServerStartException e) {
                     e.printStackTrace();
                 }
             }
@@ -169,15 +170,10 @@ public class TestHttpServer extends AbstractTestHttpServer {
         HttpGet httpget = new HttpGet("http://localhost:" + testPort + "/");
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
-        CloseableHttpResponse response = null;
-        try {
-            response = httpclient.execute(httpget);
+        try (CloseableHttpResponse response = httpclient.execute(httpget)) {
             HttpEntity entity = response.getEntity();
             String str = new String(readContents(entity), StandardCharsets.UTF_8);
-            Assert.assertTrue("The response entity didn't contain the string 'testdir'", str.indexOf("testdir") >= 0);
-        } finally {
-            if (response != null)
-                response.close();
+            Assert.assertTrue("The response entity didn't contain the string 'testdir'", str.contains("testdir"));
         }
     }
 

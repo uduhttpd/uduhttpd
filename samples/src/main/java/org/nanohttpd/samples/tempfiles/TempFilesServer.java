@@ -33,6 +33,7 @@ package org.nanohttpd.samples.tempfiles;
  * #L%
  */
 
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
 import org.nanohttpd.protocols.http.tempfiles.TempFile;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
@@ -43,7 +44,6 @@ import org.nanohttpd.util.ServerRunner;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/9/13 at 12:47 AM
@@ -93,12 +93,13 @@ public class TempFilesServer extends DebugServer {
         }
     }
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
         TempFilesServer server = new TempFilesServer();
         server.setTempFileManagerFactory(new ExampleManagerFactory());
+
         try {
             ServerRunner.executeInstance(server);
-        } catch (TimeoutException e) {
+        } catch (ServerStartException e) {
             e.printStackTrace();
         }
     }

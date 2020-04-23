@@ -102,10 +102,7 @@ public class HTTPSessionImpl implements HTTPSession {
 
     public HTTPSessionImpl(NanoHTTPD httpd, TempFileManager tempFileManager, InputStream inputStream,
                            OutputStream outputStream, InetAddress inetAddress) {
-        this.httpd = httpd;
-        this.tempFileManager = tempFileManager;
-        this.inputStream = new BufferedInputStream(inputStream, HTTPSessionImpl.BUFFER_SIZE);
-        this.outputStream = outputStream;
+        this(httpd, tempFileManager, inputStream, outputStream);
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" :
                 inetAddress.getHostAddress();
         this.headers = new HashMap<>();

@@ -58,6 +58,7 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 
 import java.io.File;
@@ -240,13 +241,13 @@ public class TestNanoFileUpload {
     }
 
     @Before
-    public void setUp() throws IOException, TimeoutException {
+    public void setUp() throws ServerStartException {
         this.testServer = new TestServer();
-        this.testServer.start(2000);
+        this.testServer.start();
     }
 
     @After
-    public void tearDown() throws TimeoutException {
+    public void tearDown() {
         this.testServer.stop();
     }
 

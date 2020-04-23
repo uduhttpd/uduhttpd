@@ -33,7 +33,6 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
 
     @Override
     public void run() {
-
         try {
             InputStream inputStream = clientSocket.getInputStream();
             OutputStream outputStream = clientSocket.getOutputStream();

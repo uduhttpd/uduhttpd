@@ -98,7 +98,8 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatSendsBackResponseBody_Accepted() throws Exception {
-        this.testServer.response = Response.newFixedLengthResponse(DefaultStatusCode.ACCEPTED, "application/xml", "<body />");
+        this.testServer.response = Response.newFixedLengthResponse(DefaultStatusCode.ACCEPTED,
+                "application/xml", "<body />");
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 

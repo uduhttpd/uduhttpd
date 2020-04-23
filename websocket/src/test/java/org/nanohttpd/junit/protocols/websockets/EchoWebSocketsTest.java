@@ -39,6 +39,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.protocols.websockets.NanoWSD;
 import org.nanohttpd.samples.websockets.DebugWebSocketServer;
 import org.nanohttpd.samples.websockets.EchoSocketSample;
@@ -60,7 +61,7 @@ public class EchoWebSocketsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         EchoWebSocketsTest.server = new DebugWebSocketServer(9191, true);
-        EchoWebSocketsTest.server.start(2000);
+        EchoWebSocketsTest.server.start();
     }
 
     @AfterClass
@@ -85,7 +86,7 @@ public class EchoWebSocketsTest {
                 };
                 try {
                     EchoSocketSample.main(args);
-                } catch (IOException | TimeoutException e) {
+                } catch (ServerStartException e) {
                     fail("Exception: " + e.getMessage());
                 }
             }

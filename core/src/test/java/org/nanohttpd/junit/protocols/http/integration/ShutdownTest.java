@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.server.ServerStartException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,9 +62,9 @@ public class ShutdownTest {
     }
 
     @Test
-    public void connectionsAreClosedWhenServerStops() throws IOException, TimeoutException {
+    public void connectionsAreClosedWhenServerStops() throws IOException, ServerStartException {
         TestServer server = new TestServer();
-        server.start(2000);
+        server.start();
         makeRequest();
         server.stop();
 
