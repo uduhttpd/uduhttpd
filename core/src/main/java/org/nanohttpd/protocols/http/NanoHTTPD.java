@@ -33,6 +33,8 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import org.nanohttpd.concurrent.util.RegistrarRunnable;
+import org.nanohttpd.protocols.http.client.ClientRequestExecutor;
 import org.nanohttpd.protocols.http.client.ClientRequestExecutorFactory;
 import org.nanohttpd.protocols.http.client.DefaultClientRequestExecutorFactory;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
@@ -223,6 +225,9 @@ public abstract class NanoHTTPD {
 
     protected List<Handler<HTTPSession, Response>> interceptors = new ArrayList<>(4);
 
+    private List<ClientRequestExecutor> activeClientConnectionList = Collections.synchronizedList(
+            new ArrayList<ClientRequestExecutor>());
+
     private ServerSocket serverSocket;
 
     private Thread serverThread;
@@ -317,13 +322,13 @@ public abstract class NanoHTTPD {
      * <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected static Map<String, List<String>> decodeParameters(String queryString) {
-        Map<String, List<String>> parms = new HashMap<String, List<String>>();
+        Map<String, List<String>> parms = new HashMap<>();
         if (queryString != null) {
             StringTokenizer st = new StringTokenizer(queryString, "&");
             while (st.hasMoreTokens()) {
                 String e = st.nextToken();
                 int sep = e.indexOf('=');
-                String propertyName = sep >= 0 ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
+                String propertyName = decodePercent(sep >= 0 ? e.substring(0, sep) : e).trim();
                 if (!parms.containsKey(propertyName)) {
                     parms.put(propertyName, new ArrayList<String>());
                 }
@@ -417,7 +422,8 @@ public abstract class NanoHTTPD {
     }
 
     public void handleConnectionRequest(Socket socket) {
-        getClientRequestExecutorService().submit(getClientRequestExecutorFactory().create(this, socket));
+        getClientRequestExecutorService().submit(new RegistrarRunnable<>(
+                getClientRequestExecutorFactory().create(this, socket), activeClientConnectionList));
     }
 
     /**
@@ -518,6 +524,12 @@ public abstract class NanoHTTPD {
         if (isListening()) {
             safeClose(serverSocket);
             getClientRequestExecutorService().shutdown();
+
+            if (activeClientConnectionList.size() > 0) {
+                List<ClientRequestExecutor> copyList = new ArrayList<>(activeClientConnectionList);
+                for (ClientRequestExecutor requestExecutor : copyList)
+                    safeClose(requestExecutor);
+            }
 
             if (isAlive()) {
                 try {

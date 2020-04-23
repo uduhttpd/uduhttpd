@@ -47,13 +47,13 @@ public class ServerRunnable implements Runnable {
 
     @Override
     public void run() {
-        try {
-            do {
+        do {
+            try {
                 server.handleConnectionRequest(server.getServerSocket().accept());
-            } while (!server.getServerSocket().isClosed());
-        } catch (IOException e) {
-            if (!server.getServerSocket().isClosed())
-                e.printStackTrace();
-        }
+            } catch (IOException e) {
+                if (!server.getServerSocket().isClosed())
+                    e.printStackTrace();
+            }
+        } while (!server.getServerSocket().isClosed());
     }
 }

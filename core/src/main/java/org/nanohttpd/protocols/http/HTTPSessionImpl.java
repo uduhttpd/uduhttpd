@@ -343,6 +343,8 @@ public class HTTPSessionImpl implements HTTPSession {
             this.inputStream.mark(HTTPSessionImpl.BUFFER_SIZE);
             try {
                 read = this.inputStream.read(buf, 0, HTTPSessionImpl.BUFFER_SIZE);
+
+
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {

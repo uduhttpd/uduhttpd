@@ -33,6 +33,7 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
 
     @Override
     public void run() {
+
         try {
             InputStream inputStream = clientSocket.getInputStream();
             OutputStream outputStream = clientSocket.getOutputStream();
@@ -40,7 +41,7 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
             HTTPSessionImpl session = new HTTPSessionImpl(server, tempFileManager, inputStream, outputStream,
                     clientSocket.getInetAddress());
             // FIXME: 23.04.2020 Why is this run in a loop?
-            while (!clientSocket.isClosed()) {
+            while (!clientSocket.isClosed() || !Thread.interrupted()) {
                 session.execute();
             }
         } catch (Exception e) {

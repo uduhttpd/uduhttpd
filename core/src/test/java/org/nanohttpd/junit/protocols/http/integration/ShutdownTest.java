@@ -41,7 +41,6 @@ import org.nanohttpd.protocols.http.response.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.TimeoutException;
 
@@ -67,6 +66,7 @@ public class ShutdownTest {
         server.start(2000);
         makeRequest();
         server.stop();
+
         try {
             makeRequest();
             fail("Connection should be closed!");
@@ -82,7 +82,7 @@ public class ShutdownTest {
         while (in.available() > 0) {
             in.read();
         }
-        in.close();
+        connection.disconnect();
     }
 
 }
