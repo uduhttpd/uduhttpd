@@ -50,7 +50,8 @@ public class DefaultServerSocketFactory extends ServerSocketFactoryImpl {
     @Override
     public ServerSocket create() throws IOException {
         NanoHTTPD.LOG.info("Attempt");
-        ServerSocket serverSocket = new ServerSocket(getBindPort(), 0, getBindAddress());
+        ServerSocket serverSocket = getBindAddress() != null ? new ServerSocket(getBindPort(), 0, getBindAddress())
+                : new ServerSocket(getBindPort());
         NanoHTTPD.LOG.info("Assigned to port=" + serverSocket.getLocalPort());
         return serverSocket;
     }

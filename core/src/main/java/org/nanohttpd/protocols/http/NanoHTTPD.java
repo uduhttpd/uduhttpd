@@ -448,6 +448,7 @@ public abstract class NanoHTTPD {
      * Pluggable strategy for creating and cleaning up temporary files.
      *
      * @param factory new strategy for handling temp files.
+     * @see #getTempFileManagerFactory()
      */
     public void setTempFileManagerFactory(Factory<TempFileManager> factory) {
         tempFileManagerFactory = factory;
@@ -458,6 +459,7 @@ public abstract class NanoHTTPD {
      *
      * @throws ServerStartException when the server cannot start with the configuration provided by the factory or
      *                              the thread exits for some reason.
+     * @see #start(boolean, int)
      */
     public void start() throws ServerStartException {
         try {
@@ -471,20 +473,20 @@ public abstract class NanoHTTPD {
      * Start listening for connections.
      *
      * @param daemon       set {@link Thread#setDaemon(boolean)}.
-     * @param waitForStart the time in milliseconds that we will wait until the server starts listening. '0' will mean
-     *                     it will wait forever unless it starts. This will return as soon as the server starts
-     *                     listening and doesn't mean that the server will take as long to start.
-     * @throws TimeoutException     when the value given for waitForStart is bigger than 0 zero and the server did not
-     *                              start under the given time.
-     * @throws ServerStartException when the server doesn't start with the factory configuration or the thread exits
-     *                              for some reason.
+     * @param waitForStart milliseconds to block the calling thread until the server starts listening. '0' will mean
+     *                     it will wait until it starts, a positive value to wait as long as given value and
+     *                     a negative value to not wait at all. When a positive value is assigned, it will block the
+     *                     calling thread until the server starts listening.
+     * @throws TimeoutException      when the value given for waitForStart is bigger than 0 zero and the server did not
+     *                               start under the given time.
+     * @throws ServerStartException  when the server doesn't start with the factory configuration or the thread exits
+     *                               for some reason.
+     * @throws IllegalStateException if the server is not running. Use {@link #isListening()} to make sure it is running.
+     * @see #start()
      */
     public void start(boolean daemon, int waitForStart) throws TimeoutException, ServerStartException {
         if (isListening())
             throw new IllegalStateException("The server is already running.");
-
-        if (waitForStart < 0)
-            throw new IllegalArgumentException("The time to wait cannot be smaller than 1.");
 
         ServerExecutor executor = createServerExecutor();
         serverThread = new Thread(executor);
@@ -495,7 +497,7 @@ public abstract class NanoHTTPD {
         try {
             executor.waitUntilStarts(waitForStart);
         } catch (InterruptedException e) {
-            throw new ServerStartException("Could not wait for the server to start because the current thread" +
+            throw new ServerStartException("Could not wait for the server to start because the current thread " +
                     "making the call has been interrupted.", e);
         }
 
@@ -507,7 +509,10 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Stop listening for connections and wait for the thread to exit.
+     * Stop listening for connections and block the calling thread indefinitely until the server thread exits.
+     *
+     * @see #stop(int)
+     * @see #stopInBackground()
      */
     public void stop() {
         try {
@@ -520,7 +525,10 @@ public abstract class NanoHTTPD {
     /**
      * Stop listening for connections and exit the thread.
      *
-     * @param wait time before giving up. '0' to wait indefinitely
+     * @param wait time before giving up. '0' to wait indefinitely, a positive value to wait as many milliseconds and
+     *             a negative value to not wait at all.
+     * @see #stop()
+     * @see #stopInBackground()
      */
     public void stop(int wait) throws TimeoutException {
         safeClose(serverSocket);
@@ -533,13 +541,11 @@ public abstract class NanoHTTPD {
                     safeClose(requestExecutor);
             }
 
-            if (serverThread != null && serverThread.isAlive()) {
+            if (wait >= 0 && serverThread != null && serverThread.isAlive()) {
                 try {
                     serverThread.join(wait);
                     if (serverThread.isAlive())
                         throw new TimeoutException("Could not stop the server in time.");
-
-                    serverThread = null;
                 } catch (InterruptedException ignored) {
 
                 }
@@ -548,9 +554,27 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * Stop listening for connection and do this without blocking the calling thread. The advantage of using this
+     * over calling {@link #stop(int)} with a negative integer is you don't have to deal with the
+     * {@link TimeoutException} that will never be thrown in this case.
+     *
+     * @see #stop()
+     * @see #stop(int)
+     */
+    public void stopInBackground() {
+        try {
+            stop(-1);
+        } catch (TimeoutException e) {
+            // impossible to reach here.
+        }
+    }
+
+    /**
      * Reusable server executor. The server socket instance is assigned during the execution and the factory classes
      * should not create ServerSocket instances outside of this class unless you are going to unbind the address before
      * this executor enters the execution phase.
+     *
+     * @see DefaultServerExecutor
      */
     public abstract static class ServerExecutor implements Runnable {
         public final Object startupLock = new Object();
@@ -561,7 +585,7 @@ public abstract class NanoHTTPD {
         @Override
         public final void run() {
             started = false;
-            stopped = true;
+            stopped = false;
             NanoHTTPD server = getServer();
 
             try {
@@ -583,6 +607,7 @@ public abstract class NanoHTTPD {
             } finally {
                 safeClose(server.getServerSocket());
                 stopped = true;
+                server.serverThread = null;
             }
         }
 
@@ -606,8 +631,8 @@ public abstract class NanoHTTPD {
          * Wait until the server starts. The thread that will execute this should already be started. This will return
          * immediately if the execution has already started.
          *
-         * @param ms time to wait as described with{@link Object#wait(long)}
-         * @throws InterruptedException  if or when the calling thread is interrupted.
+         * @param ms time to wait as described in {@link Object#wait(long)}
+         * @throws InterruptedException  when the calling thread is interrupted.
          * @throws IllegalStateException when the executor has already run and doesn't wait for another execution.
          */
         public void waitUntilStarts(long ms) throws InterruptedException {

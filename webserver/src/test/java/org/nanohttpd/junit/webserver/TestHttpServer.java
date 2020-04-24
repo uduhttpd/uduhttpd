@@ -38,10 +38,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.server.ServerStartException;
 import org.nanohttpd.webserver.SimpleWebServer;
 
@@ -49,10 +47,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.*;
 
+@FixMethodOrder
 public class TestHttpServer extends AbstractTestHttpServer {
 
     private static PipedOutputStream stdIn;
@@ -88,6 +88,37 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
+    public void test0MakeMultipleRequests() throws IOException, ServerStartException {
+        NanoHTTPD server1 = new NanoHTTPD(1000) {
+
+        };
+
+        NanoHTTPD server2 = new NanoHTTPD(1010) {
+
+        };
+
+        server1.start();
+        server2.start();
+
+        NanoHTTPD[] servers = {server1, server2};
+
+        for (int i = 0; i < 20; i++) {
+            int chosen = (int) Math.round(Math.random() * (servers.length - 1));
+            NanoHTTPD server = servers[chosen];
+
+            NanoHTTPD.LOG.info("Chosen: " + chosen);
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpGet httpget = new HttpGet("http://localhost:" + server.getListeningPort());
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            Assert.assertEquals(404, response.getStatusLine().getStatusCode());
+            response.close();
+        }
+
+        server1.stop();
+        server2.stop();
+    }
+
+    @Test
     public void doTest404() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpget = new HttpGet("http://localhost:9090/xxx/yyy.html");
@@ -119,7 +150,8 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), StandardCharsets.UTF_8);
-        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n<h1>it works</h1>\n</body>\n</html>", string);
+        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n<h1>it works</h1>" +
+                "\n</body>\n</html>", string);
         response.close();
 
         httpget = new HttpGet("http://localhost:9090/");

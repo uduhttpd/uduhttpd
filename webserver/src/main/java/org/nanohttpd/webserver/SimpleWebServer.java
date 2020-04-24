@@ -398,6 +398,7 @@ public class SimpleWebServer extends NanoHTTPD {
             homeDir = this.rootDirs.get(i);
             canServeUri = canServeUri(uri, homeDir);
         }
+
         if (!canServeUri) {
             return getNotFoundResponse();
         }
@@ -569,11 +570,11 @@ public class SimpleWebServer extends NanoHTTPD {
                     res.addHeader("ETag", etag);
                 }
             }
+
+            return res;
         } catch (IOException e) {
             return getForbiddenResponse("Reading file failed.");
         }
-
-        return getNotFoundResponse();
     }
 
     private Response newFixedFileResponse(File file, String mime) throws FileNotFoundException {
