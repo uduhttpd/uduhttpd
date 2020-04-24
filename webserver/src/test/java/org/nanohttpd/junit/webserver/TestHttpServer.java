@@ -89,11 +89,11 @@ public class TestHttpServer extends AbstractTestHttpServer {
 
     @Test
     public void test0MakeMultipleRequests() throws IOException, ServerStartException {
-        NanoHTTPD server1 = new NanoHTTPD(1000) {
+        NanoHTTPD server1 = new NanoHTTPD(3995) {
 
         };
 
-        NanoHTTPD server2 = new NanoHTTPD(1010) {
+        NanoHTTPD server2 = new NanoHTTPD(3996) {
 
         };
 

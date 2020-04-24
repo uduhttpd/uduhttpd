@@ -33,8 +33,9 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import org.nanohttpd.concurrent.util.RegistrarRunnable;
-import org.nanohttpd.protocols.http.client.*;
+import org.nanohttpd.protocols.http.client.ClientRequestExecutor;
+import org.nanohttpd.protocols.http.client.ClientRequestExecutorFactory;
+import org.nanohttpd.protocols.http.client.DefaultClientRequestExecutorFactory;
 import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.server.DefaultServerExecutor;
@@ -45,6 +46,9 @@ import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManagerFactory;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 import org.nanohttpd.util.Factory;
 import org.nanohttpd.util.Handler;
+import org.nanohttpd.util.concurrent.DefaultExecutorServiceFactory;
+import org.nanohttpd.util.concurrent.ExecutorServiceFactory;
+import org.nanohttpd.util.concurrent.RegistrarRunnable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -506,7 +510,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Start listening for connections without blocking the calling thread. However, beware that unlike blocking ones
+     * Start listening for connections without blocking the calling thread. However, beware that unlike blocking ones,
      * this will not throw an error if the server fails to start. For that, you need to make use of the returned
      * {@link ServerExecutor} instance and {@link #isListening()}, {@link #isInterrupted()} methods.
      *
@@ -627,24 +631,25 @@ public abstract class NanoHTTPD {
             try {
                 server.serverSocket = server.getServerSocketFactory().create();
                 started = true;
-
+            } catch (Exception e) {
+                startException = new ServerStartException("The server thread crashed during initialization of " +
+                        "the socket. See the cause error for details.", e);
+            } finally {
                 synchronized (startupLock) {
                     startupLock.notifyAll();
                 }
+            }
 
+            if (started)
                 try {
                     serve(server.getServerSocket());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } catch (Exception e) {
-                startException = new ServerStartException("The server thread did not start during initialization of " +
-                        "the socket. See the cause error for details.", e);
-            } finally {
-                safeClose(server.getServerSocket());
-                stopped = true;
-                server.serverThread = null;
-            }
+
+            safeClose(server.getServerSocket());
+            stopped = true;
+            server.serverThread = null;
         }
 
         protected abstract NanoHTTPD getServer();
