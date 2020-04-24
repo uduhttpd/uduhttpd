@@ -455,36 +455,67 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Start listening for connection and use default values
+     * Start listening for connections and block the calling thread until the server is ready. The value used for
+     * {@link Thread#setDaemon(boolean)} defaults in this case.
      *
-     * @throws ServerStartException when the server cannot start with the configuration provided by the factory or
-     *                              the thread exits for some reason.
-     * @see #start(boolean, int)
+     * @return the server executor
+     * @throws ServerStartException when the server doesn't start with the factory configuration or the thread exits
+     *                              for some reason.
      */
-    public void start() throws ServerStartException {
-        try {
-            start(false, 0);
-        } catch (TimeoutException ignored) {
-            // Cannot reach here because, unless the server is started, it will not return. (blocks)
-        }
+    public ServerExecutor start() throws ServerStartException {
+        return start(true);
     }
 
     /**
-     * Start listening for connections.
+     * Start listening for connections while block the calling thread until the server starts or an error is thrown.
+     *
+     * @param daemon set {@link Thread#setDaemon(boolean)}.
+     * @return the server executor.
+     * @throws ServerStartException when the server doesn't start with the factory configuration or the thread exits
+     *                              for some reason.
+     * @see #start(boolean, int)
+     * @see #startAsynchronously(boolean)
+     */
+    public ServerExecutor start(boolean daemon) throws ServerStartException {
+        return startBlockingPrivate(daemon, 0);
+    }
+
+    /**
+     * Start listening for connections and block the calling thread until the server is ready.
      *
      * @param daemon       set {@link Thread#setDaemon(boolean)}.
-     * @param waitForStart milliseconds to block the calling thread until the server starts listening. '0' will mean
-     *                     it will wait until it starts, a positive value to wait as long as given value and
-     *                     a negative value to not wait at all. When a positive value is assigned, it will block the
-     *                     calling thread until the server starts listening.
-     * @throws TimeoutException      when the value given for waitForStart is bigger than 0 zero and the server did not
-     *                               start under the given time.
+     * @param waitForStart maximum time to block the calling thread.
+     * @return the server executor.
+     * @throws TimeoutException      if the waitForStart exceeded and the server failed to start.
      * @throws ServerStartException  when the server doesn't start with the factory configuration or the thread exits
      *                               for some reason.
      * @throws IllegalStateException if the server is not running. Use {@link #isListening()} to make sure it is running.
-     * @see #start()
+     * @see #start(boolean)
+     * @see #startAsynchronously(boolean)
      */
-    public void start(boolean daemon, int waitForStart) throws TimeoutException, ServerStartException {
+    public ServerExecutor start(boolean daemon, int waitForStart) throws TimeoutException, ServerStartException {
+        if (waitForStart == 0)
+            throw new IllegalArgumentException("Indefinite blocking is not allowed with this method. Use " +
+                    "start(boolean) for that");
+
+        ServerExecutor executor = startBlockingPrivate(daemon, waitForStart);
+        if (!isListening())
+            throw new TimeoutException("Could not start the server in time.");
+
+        return executor;
+    }
+
+    /**
+     * Start listening for connections without blocking the calling thread. However, beware that unlike blocking ones
+     * this will not throw an error if the server fails to start. For that, you need to make use of the returned
+     * {@link ServerExecutor} instance and {@link #isListening()}, {@link #isInterrupted()} methods.
+     *
+     * @return the server executor.
+     * @throws IllegalStateException if the server is already running.
+     * @see #start(boolean)
+     * @see #start(boolean, int)
+     */
+    public ServerExecutor startAsynchronously(boolean daemon) {
         if (isListening())
             throw new IllegalStateException("The server is already running.");
 
@@ -493,6 +524,15 @@ public abstract class NanoHTTPD {
         serverThread.setDaemon(daemon);
         serverThread.setName("uduhttpd daemon");
         serverThread.start();
+
+        return executor;
+    }
+
+    private ServerExecutor startBlockingPrivate(boolean daemon, int waitForStart) throws ServerStartException {
+        if (waitForStart < 0)
+            throw new IllegalArgumentException("The time to wait cannot be a negative.");
+
+        ServerExecutor executor = startAsynchronously(daemon);
 
         try {
             executor.waitUntilStarts(waitForStart);
@@ -504,68 +544,64 @@ public abstract class NanoHTTPD {
         if (executor.getStartError() != null)
             throw executor.getStartError();
 
-        if (!isListening())
-            throw new TimeoutException("Could not start the server in time.");
+        return executor;
     }
 
     /**
      * Stop listening for connections and block the calling thread indefinitely until the server thread exits.
      *
      * @see #stop(int)
-     * @see #stopInBackground()
+     * @see #stopAsynchronously()
      */
     public void stop() {
-        try {
-            stop(0);
-        } catch (TimeoutException e) {
-            // Cannot reach here because, unless the server is stopped, it will not return. (blocks)
-        }
+        stopBlockingPrivate(0);
     }
 
     /**
-     * Stop listening for connections and exit the thread.
+     * Stop listening for connections and wait for the server thread to exit.
      *
-     * @param wait time before giving up. '0' to wait indefinitely, a positive value to wait as many milliseconds and
-     *             a negative value to not wait at all.
+     * @param waitMs maximum milliseconds this call is allowed to take.
+     * @throws TimeoutException when the server thread longer to exit.
      * @see #stop()
-     * @see #stopInBackground()
+     * @see #stopAsynchronously()
      */
-    public void stop(int wait) throws TimeoutException {
-        safeClose(serverSocket);
-        serverSocket = null;
+    public void stop(int waitMs) throws TimeoutException {
+        if (waitMs == 0)
+            throw new IllegalArgumentException("Indefinite blocking is only allowed with stop().");
 
-        if (isListening()) {
-            if (activeClientConnectionList.size() > 0) {
-                List<ClientRequestExecutor> copyList = new ArrayList<>(activeClientConnectionList);
-                for (ClientRequestExecutor requestExecutor : copyList)
-                    safeClose(requestExecutor);
-            }
-
-            if (wait >= 0 && serverThread != null && serverThread.isAlive()) {
-                try {
-                    serverThread.join(wait);
-                    if (serverThread.isAlive())
-                        throw new TimeoutException("Could not stop the server in time.");
-                } catch (InterruptedException ignored) {
-
-                }
-            }
-        }
+        stopBlockingPrivate(waitMs);
+        if (serverThread.isAlive())
+            throw new TimeoutException("Could not stop the server in time.");
     }
 
     /**
-     * Stop listening for connection and do this without blocking the calling thread. The advantage of using this
-     * over calling {@link #stop(int)} with a negative integer is you don't have to deal with the
-     * {@link TimeoutException} that will never be thrown in this case.
+     * Stop listening for connection and do this without blocking the calling thread.
      *
      * @see #stop()
      * @see #stop(int)
      */
-    public void stopInBackground() {
+    public void stopAsynchronously() {
+        safeClose(serverSocket);
+        serverSocket = null;
+
+        if (isListening() && activeClientConnectionList.size() > 0) {
+            List<ClientRequestExecutor> copyList = new ArrayList<>(activeClientConnectionList);
+            for (ClientRequestExecutor requestExecutor : copyList)
+                safeClose(requestExecutor);
+        }
+    }
+
+    private void stopBlockingPrivate(int waitMs) {
+        if (waitMs < 0)
+            throw new IllegalArgumentException("The time to wait cannot be negative.");
+
+        stopAsynchronously();
+
         try {
-            stop(-1);
-        } catch (TimeoutException e) {
-            // impossible to reach here.
+            if (serverThread != null && serverThread.isAlive())
+                serverThread.join();
+        } catch (InterruptedException ignored) {
+
         }
     }
 
