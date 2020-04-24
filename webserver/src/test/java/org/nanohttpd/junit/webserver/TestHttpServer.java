@@ -49,9 +49,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -184,8 +182,8 @@ public class TestHttpServer extends AbstractTestHttpServer {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet("http://localhost:9090/../test.html");
             response = httpClient.execute(httpGet);
-            Assert.assertEquals("The response status should be 403(Forbidden), " + "since the server won't serve requests with '../' due to security reasons", 403, response
-                    .getStatusLine().getStatusCode());
+            Assert.assertEquals("The response status should be 403(Forbidden), since the server won't serve " +
+                    "requests with '../' due to security reasons", 403, response.getStatusLine().getStatusCode());
         } finally {
             if (response != null) {
                 response.close();
@@ -202,8 +200,9 @@ public class TestHttpServer extends AbstractTestHttpServer {
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
-            Assert.assertThat("When the URL ends with a directory, and if an index.html file is present in that directory," + " the server should respond with that file",
-                    responseString, containsString("Simple index file"));
+            Assert.assertThat("When the URL ends with a directory, and if an index.html file is present in that" +
+                    " directory, the server should respond with that file", responseString, containsString(
+                    "Simple index file"));
         } finally {
             if (response != null) {
                 response.close();
@@ -220,8 +219,9 @@ public class TestHttpServer extends AbstractTestHttpServer {
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             String responseString = new String(readContents(entity), StandardCharsets.UTF_8);
-            Assert.assertThat("If a plugin returns an InternalRewrite from the serveFile method, the rewritten request should be served", responseString,
-                    allOf(containsString("dummy"), containsString("it works")));
+            Assert.assertThat("If a plugin returns an InternalRewrite from the serveFile method, the rewritten" +
+                    " request should be served", responseString, allOf(containsString("dummy"),
+                    containsString("it works")));
         } finally {
             if (response != null) {
                 response.close();
@@ -316,8 +316,8 @@ public class TestHttpServer extends AbstractTestHttpServer {
             httpGet.addHeader("if-none-match", "*");
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
-            Assert.assertEquals("The response status to a reqeuest with 'if-non-match=*' header should be NOT_MODIFIED(304), if the file exists", 304, response
-                    .getStatusLine().getStatusCode());
+            Assert.assertEquals("The response status to a reqeuest with 'if-non-match=*' header should be " +
+                    "NOT_MODIFIED(304), if the file exists", 304, response.getStatusLine().getStatusCode());
         } finally {
             if (response != null) {
                 response.close();
@@ -334,8 +334,9 @@ public class TestHttpServer extends AbstractTestHttpServer {
             httpGet.addHeader("if-none-match", "*");
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
-            Assert.assertEquals("The response status to a reqeuest with 'if-non-match=*' header and 'range' header should be NOT_MODIFIED(304),"
-                    + " if the file exists, because 'if-non-match' header should be given priority", 304, response.getStatusLine().getStatusCode());
+            Assert.assertEquals("The response status to a reqeuest with 'if-non-match=*' header and 'range' " +
+                    "header should be NOT_MODIFIED(304), if the file exists, because 'if-non-match' header should be" +
+                    " given priority", 304, response.getStatusLine().getStatusCode());
         } finally {
             if (response != null) {
                 response.close();

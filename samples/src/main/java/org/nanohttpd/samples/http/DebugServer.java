@@ -52,8 +52,9 @@ public class DebugServer extends NanoHTTPD {
         super(8080);
     }
 
-    private void listItem(StringBuilder sb, Map.Entry<String, ? extends Object> entry) {
-        sb.append("<li><code><b>").append(entry.getKey()).append("</b> = ").append(entry.getValue()).append("</code></li>");
+    private void listItem(StringBuilder sb, Map.Entry<String, ?> entry) {
+        sb.append("<li><code><b>").append(entry.getKey()).append("</b> = ").append(entry.getValue())
+                .append("</code></li>");
     }
 
     @Override
@@ -89,19 +90,14 @@ public class DebugServer extends NanoHTTPD {
         return Response.newFixedLengthResponse(sb.toString());
     }
 
-    private String toString(Map<String, ? extends Object> map) {
-        if (map.size() == 0) {
-            return "";
-        }
-        return unsortedList(map);
+    private String toString(Map<String, ?> map) {
+        return map.size() == 0 ? "" : unsortedList(map);
     }
 
-    private String unsortedList(Map<String, ? extends Object> map) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<ul>");
-        for (Map.Entry<String, ? extends Object> entry : map.entrySet()) {
+    private String unsortedList(Map<String, ?> map) {
+        StringBuilder sb = new StringBuilder("<ul>");
+        for (Map.Entry<String, ?> entry : map.entrySet())
             listItem(sb, entry);
-        }
         sb.append("</ul>");
         return sb.toString();
     }

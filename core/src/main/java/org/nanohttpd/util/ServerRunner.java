@@ -53,7 +53,9 @@ public class ServerRunner {
         System.out.println("Server started, Hit Enter to stop.\n");
 
         try {
+            System.out.println("Waiting to read");
             System.in.read();
+            System.out.println("Just read the exit sequence");
         } catch (Throwable ignored) {
         }
 

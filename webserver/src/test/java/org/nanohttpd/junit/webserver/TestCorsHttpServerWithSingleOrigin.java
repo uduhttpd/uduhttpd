@@ -64,6 +64,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        System.out.println("Starting up");
         stdIn = new PipedOutputStream();
         System.setIn(new PipedInputStream(stdIn));
         serverStartThread = new Thread(new Runnable() {
@@ -80,7 +81,6 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
             }
         });
         serverStartThread.start();
-        // give the server some tine to start.
         Thread.sleep(100);
     }
 
@@ -88,7 +88,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
     public static void tearDown() throws Exception {
         stdIn.write("\n\n".getBytes());
         serverStartThread.join(2000);
-        Assert.assertFalse(serverStartThread.isAlive());
+        Assert.assertFalse("The server thread didn't exit after the tests", serverStartThread.isAlive());
     }
 
     @Test

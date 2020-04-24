@@ -453,6 +453,12 @@ public abstract class NanoHTTPD {
         tempFileManagerFactory = factory;
     }
 
+    /**
+     * Start listening for connection and use default values
+     *
+     * @throws ServerStartException when the server cannot start with the configuration provided by the factory or
+     *                              the thread exits for some reason.
+     */
     public void start() throws ServerStartException {
         try {
             start(false, 0);
@@ -468,8 +474,10 @@ public abstract class NanoHTTPD {
      * @param waitForStart the time in milliseconds that we will wait until the server starts listening. '0' will mean
      *                     it will wait forever unless it starts. This will return as soon as the server starts
      *                     listening and doesn't mean that the server will take as long to start.
-     * @throws TimeoutException when the value given for waitForStart is bigger than 0 zero and the server did not start
-     *                          under the given time.
+     * @throws TimeoutException     when the value given for waitForStart is bigger than 0 zero and the server did not
+     *                              start under the given time.
+     * @throws ServerStartException when the server doesn't start with the factory configuration or the thread exits
+     *                              for some reason.
      */
     public void start(boolean daemon, int waitForStart) throws TimeoutException, ServerStartException {
         if (isListening())
@@ -484,14 +492,18 @@ public abstract class NanoHTTPD {
         serverThread.setName("uduhttpd daemon");
         serverThread.start();
 
-        long startTime = System.nanoTime();
-        while (!isListening()) {
-            if (executor.getStartError() != null)
-                throw executor.getStartError();
-
-            if (waitForStart > 0 && (System.nanoTime() - startTime) > waitForStart * 1e6)
-                throw new TimeoutException("Could not start the server in time.");
+        try {
+            executor.waitUntilStarts(waitForStart);
+        } catch (InterruptedException e) {
+            throw new ServerStartException("Could not wait for the server to start because the current thread" +
+                    "making the call has been interrupted.", e);
         }
+
+        if (executor.getStartError() != null)
+            throw executor.getStartError();
+
+        if (!isListening())
+            throw new TimeoutException("Could not start the server in time.");
     }
 
     /**
@@ -535,15 +547,30 @@ public abstract class NanoHTTPD {
         }
     }
 
+    /**
+     * Reusable server executor. The server socket instance is assigned during the execution and the factory classes
+     * should not create ServerSocket instances outside of this class unless you are going to unbind the address before
+     * this executor enters the execution phase.
+     */
     public abstract static class ServerExecutor implements Runnable {
+        public final Object startupLock = new Object();
         private ServerStartException startException = null;
+        private boolean started = false;
+        private boolean stopped = false;
 
         @Override
         public final void run() {
+            started = false;
+            stopped = true;
             NanoHTTPD server = getServer();
 
             try {
                 server.serverSocket = server.getServerSocketFactory().create();
+                started = true;
+
+                synchronized (startupLock) {
+                    startupLock.notifyAll();
+                }
 
                 try {
                     serve(server.getServerSocket());
@@ -555,6 +582,7 @@ public abstract class NanoHTTPD {
                         "the socket. See the cause error for details.", e);
             } finally {
                 safeClose(server.getServerSocket());
+                stopped = true;
             }
         }
 
@@ -564,6 +592,32 @@ public abstract class NanoHTTPD {
             return startException;
         }
 
+        public final boolean isStarted() {
+            return started;
+        }
+
+        public final boolean isStopped() {
+            return stopped;
+        }
+
         protected abstract void serve(ServerSocket serverSocket);
+
+        /**
+         * Wait until the server starts. The thread that will execute this should already be started. This will return
+         * immediately if the execution has already started.
+         *
+         * @param ms time to wait as described with{@link Object#wait(long)}
+         * @throws InterruptedException  if or when the calling thread is interrupted.
+         * @throws IllegalStateException when the executor has already run and doesn't wait for another execution.
+         */
+        public void waitUntilStarts(long ms) throws InterruptedException {
+            if (isStopped())
+                throw new IllegalStateException("This executor already stopped");
+
+            if (!isStarted())
+                synchronized (startupLock) {
+                    startupLock.wait(ms);
+                }
+        }
     }
 }

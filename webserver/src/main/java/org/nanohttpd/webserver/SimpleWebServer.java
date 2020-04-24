@@ -46,7 +46,6 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 public class SimpleWebServer extends NanoHTTPD {
 
@@ -91,10 +90,10 @@ public class SimpleWebServer extends NanoHTTPD {
         int port = 8080;
 
         String host = null; // bind to all interfaces by default
-        List<File> rootDirs = new ArrayList<File>();
+        List<File> rootDirs = new ArrayList<>();
+        Map<String, String> options = new HashMap<>();
         boolean quiet = false;
         String cors = null;
-        Map<String, String> options = new HashMap<String, String>();
 
         // Parse command-line, with short and long versions of the options.
         for (int i = 0; i < args.length; ++i) {
@@ -162,7 +161,8 @@ public class SimpleWebServer extends NanoHTTPD {
         ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet, cors));
     }
 
-    protected static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin, Map<String, String> commandLineOptions) {
+    protected static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin,
+                                                    Map<String, String> commandLineOptions) {
         if (mimeType == null || plugin == null) {
             return;
         }
@@ -205,22 +205,18 @@ public class SimpleWebServer extends NanoHTTPD {
         super(host, port);
         this.quiet = quiet;
         this.cors = cors;
-        this.rootDirs = new ArrayList<File>(wwwroots);
+        this.rootDirs = new ArrayList<>(wwwroots);
 
         init();
     }
 
     private boolean canServeUri(String uri, File homeDir) {
-        boolean canServeUri;
         File f = new File(homeDir, uri);
-        canServeUri = f.exists();
-        if (!canServeUri) {
-            WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(getMimeTypeForFile(uri));
-            if (plugin != null) {
-                canServeUri = plugin.canServeUri(uri, homeDir);
-            }
-        }
-        return canServeUri;
+        if (f.exists())
+            return true;
+
+        WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(getMimeTypeForFile(uri));
+        return plugin != null && plugin.canServeUri(uri, homeDir);
     }
 
     /**
@@ -228,22 +224,22 @@ public class SimpleWebServer extends NanoHTTPD {
      * instead of '+'.
      */
     private String encodeUri(String uri) {
-        String newUri = "";
+        StringBuilder newUri = new StringBuilder();
         StringTokenizer st = new StringTokenizer(uri, "/ ", true);
         while (st.hasMoreTokens()) {
             String tok = st.nextToken();
             if ("/".equals(tok)) {
-                newUri += "/";
+                newUri.append("/");
             } else if (" ".equals(tok)) {
-                newUri += "%20";
+                newUri.append("%20");
             } else {
                 try {
-                    newUri += URLEncoder.encode(tok, "UTF-8");
+                    newUri.append(URLEncoder.encode(tok, "UTF-8"));
                 } catch (UnsupportedEncodingException ignored) {
                 }
             }
         }
-        return newUri;
+        return newUri.toString();
     }
 
     private String findIndexFileInDirectory(File directory) {
@@ -257,15 +253,18 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     protected Response getForbiddenResponse(String s) {
-        return Response.newFixedLengthResponse(DefaultStatusCode.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
+        return Response.newFixedLengthResponse(DefaultStatusCode.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT,
+                "FORBIDDEN: " + s);
     }
 
     protected Response getInternalErrorResponse(String s) {
-        return Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
+        return Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                "INTERNAL ERROR: " + s);
     }
 
     protected Response getNotFoundResponse() {
-        return Response.newFixedLengthResponse(DefaultStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+        return Response.newFixedLengthResponse(DefaultStatusCode.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT,
+                "Error 404, file not found.");
     }
 
     /**
@@ -276,68 +275,86 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected String listDirectory(String uri, File f) {
         String heading = "Directory " + uri;
-        StringBuilder msg =
-                new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" + "span.dirname { font-weight: bold; }\n" + "span.filesize { font-size: 75%; }\n"
-                        + "// -->\n" + "</style>" + "</head><body><h1>" + heading + "</h1>");
+        StringBuilder msg = new StringBuilder("<html><head><title>" + heading + "</title><style><!--\nspan.dirname" +
+                " { font-weight: bold; }\nspan.filesize { font-size: 75%; }\n// -->\n</style></head><body><h1>"
+                + heading + "</h1>");
 
-        String up = null;
+        String goUpHtml = null;
         if (uri.length() > 1) {
             String u = uri.substring(0, uri.length() - 1);
             int slash = u.lastIndexOf('/');
             if (slash >= 0 && slash < u.length()) {
-                up = uri.substring(0, slash + 1);
+                goUpHtml = uri.substring(0, slash + 1);
             }
         }
 
-        List<String> files = Arrays.asList(f.list(new FilenameFilter() {
+        StringBuilder directoriesHtml = null;
+        StringBuilder filesHtml = null;
+        File[] files = f.listFiles();
 
-            @Override
-            public boolean accept(File dir, String name) {
-                return new File(dir, name).isFile();
-            }
-        }));
-        Collections.sort(files);
-        List<String> directories = Arrays.asList(f.list(new FilenameFilter() {
+        if (files != null && files.length > 0) {
+            Arrays.sort(files, new Comparator<File>() {
+                @Override
+                public int compare(File file, File that) {
+                    // any of them directories? if so, is only one of them directory? if so, the directory one goes up
+                    if (file.isDirectory() || that.isDirectory() && (file.isDirectory() != that.isDirectory()))
+                        return file.isDirectory() ? 1 : -1;
 
-            @Override
-            public boolean accept(File dir, String name) {
-                return new File(dir, name).isDirectory();
-            }
-        }));
-        Collections.sort(directories);
-        if (up != null || directories.size() + files.size() > 0) {
-            msg.append("<ul>");
-            if (up != null || directories.size() > 0) {
-                msg.append("<section class=\"directories\">");
-                if (up != null) {
-                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></li>");
+                    return file.compareTo(that);
                 }
-                for (String directory : directories) {
-                    String dir = directory + "/";
-                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir).append("</span></a></li>");
-                }
-                msg.append("</section>");
-            }
-            if (files.size() > 0) {
-                msg.append("<section class=\"files\">");
-                for (String file : files) {
-                    msg.append("<li><a href=\"").append(encodeUri(uri + file)).append("\"><span class=\"filename\">").append(file).append("</span></a>");
-                    File curFile = new File(f, file);
-                    long len = curFile.length();
-                    msg.append("&nbsp;<span class=\"filesize\">(");
+            });
+
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    if (directoriesHtml == null)
+                        directoriesHtml = new StringBuilder();
+
+                    String dir = file.getName() + "/";
+                    directoriesHtml.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir))
+                            .append("\"><span class=\"dirname\">").append(dir).append("</span></a></li>");
+                } else {
+                    if (filesHtml == null)
+                        filesHtml = new StringBuilder();
+
+                    filesHtml.append("<li><a href=\"").append(encodeUri(uri + file))
+                            .append("\"><span class=\"filename\">").append(file).append("</span></a>");
+                    long len = file.length();
+                    filesHtml.append("&nbsp;<span class=\"filesize\">(");
+                    // TODO: 24.04.2020 simplify this
                     if (len < 1024) {
-                        msg.append(len).append(" bytes");
+                        filesHtml.append(len).append(" bytes");
                     } else if (len < 1024 * 1024) {
-                        msg.append(len / 1024).append(".").append(len % 1024 / 10 % 100).append(" KB");
+                        filesHtml.append(len / 1024).append(".").append(len % 1024 / 10 % 100).append(" KB");
                     } else {
-                        msg.append(len / (1024 * 1024)).append(".").append(len % (1024 * 1024) / 10000 % 100).append(" MB");
+                        filesHtml.append(len / (1024 * 1024)).append(".").append(len % (1024 * 1024) / 10000 % 100).append(" MB");
                     }
-                    msg.append(")</span></li>");
+                    filesHtml.append(")</span></li>");
                 }
+            }
+        }
+
+        if (goUpHtml != null || directoriesHtml != null || filesHtml != null) {
+            msg.append("<ul>");
+
+            if (goUpHtml != null || directoriesHtml != null) {
+                msg.append("<section class=\"directories\">");
+
+                if (goUpHtml != null)
+                    msg.append("<li><a rel=\"directory\" href=\"").append(goUpHtml)
+                            .append("\"><span class=\"dirname\">..</span></a></li>");
+
+                if (directoriesHtml != null)
+                    msg.append(directoriesHtml);
+
                 msg.append("</section>");
             }
+
+            if (filesHtml != null)
+                msg.append("<section class=\"files\">").append(filesHtml).append("</section>");
+
             msg.append("</ul>");
         }
+
         msg.append("</body></html>");
         return msg.toString();
     }
@@ -413,7 +430,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }
         String mimeTypeForFile = getMimeTypeForFile(uri);
         WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(mimeTypeForFile);
-        Response response = null;
+        Response response;
         if (plugin != null && plugin.canServeUri(uri, homeDir)) {
             response = plugin.serveFile(uri, headers, session, f, mimeTypeForFile);
             if (response instanceof InternalRewrite) {
@@ -461,9 +478,9 @@ public class SimpleWebServer extends NanoHTTPD {
      * ignores all headers and HTTP parameters.
      */
     Response serveFile(String uri, Map<String, String> header, File file, String mime) {
-        Response res;
         try {
             // Calculate etag
+            Response res;
             String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
 
             // Support (simple) skipping:
@@ -525,7 +542,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     res.addHeader("ETag", etag);
                 }
             } else {
-
                 if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
                     // return the size of the file
                     // 4xx responses are not trumped by if-none-match
@@ -553,11 +569,11 @@ public class SimpleWebServer extends NanoHTTPD {
                     res.addHeader("ETag", etag);
                 }
             }
-        } catch (IOException ioe) {
-            res = getForbiddenResponse("Reading file failed.");
+        } catch (IOException e) {
+            return getForbiddenResponse("Reading file failed.");
         }
 
-        return res;
+        return getNotFoundResponse();
     }
 
     private Response newFixedFileResponse(File file, String mime) throws FileNotFoundException {
