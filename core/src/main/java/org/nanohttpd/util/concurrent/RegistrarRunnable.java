@@ -1,4 +1,4 @@
-package org.nanohttpd.concurrent.util;
+package org.nanohttpd.util.concurrent;
 
 import java.util.List;
 

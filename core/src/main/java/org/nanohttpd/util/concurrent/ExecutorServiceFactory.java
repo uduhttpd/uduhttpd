@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http.client;
+package org.nanohttpd.util.concurrent;
 
 import org.nanohttpd.util.Factory;
 

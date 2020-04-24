@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http.client;
+package org.nanohttpd.util.concurrent;
 
 import java.util.concurrent.*;
 
