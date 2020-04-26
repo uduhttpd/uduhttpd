@@ -1,5 +1,6 @@
 package org.nanohttpd.protocols.http.client;
 
+import org.apache.http.ConnectionClosedException;
 import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
@@ -34,15 +35,19 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
     @Override
     public void run() {
         try {
+            NanoHTTPD.LOG.info("Start handling");
             InputStream inputStream = clientSocket.getInputStream();
             OutputStream outputStream = clientSocket.getOutputStream();
             TempFileManager tempFileManager = server.getTempFileManagerFactory().create();
             HTTPSessionImpl session = new HTTPSessionImpl(server, tempFileManager, inputStream, outputStream,
                     clientSocket.getInetAddress());
             // FIXME: 23.04.2020 Why is this run in a loop?
-            while (!clientSocket.isClosed() || !Thread.interrupted()) {
+            while (!clientSocket.isClosed()) {
+                NanoHTTPD.LOG.info("Execute");
                 session.execute();
             }
+        } catch (ConnectionClosedException ignored) {
+
         } catch (Exception e) {
             // When the socket is closed by the client, we throw our own SocketException to break the "keep alive" loop
             // above. If the exception was anything other than the expected SocketException OR a SocketTimeoutException,
@@ -50,6 +55,8 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
             if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "Communication with the client broken, or an bug in the handler code", e);
             }
+
+            e.printStackTrace();
         } finally {
             NanoHTTPD.safeClose(this);
         }

@@ -102,7 +102,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
 
         NanoHTTPD[] servers = {server1, server2};
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
             int chosen = (int) Math.round(Math.random() * (servers.length - 1));
             NanoHTTPD server = servers[chosen];
 

@@ -33,6 +33,7 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import org.apache.http.ConnectionClosedException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
@@ -111,7 +112,8 @@ public class HTTPSessionImpl implements HTTPSession {
     /**
      * Decodes the sent headers and loads the data into Key/value pairs
      */
-    private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, List<String>> parms, Map<String, String> headers) throws ResponseException {
+    private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, List<String>> parms, Map<String,
+            String> headers) throws ResponseException {
         try {
             // Read the request line
             String inLine = in.readLine();
@@ -302,8 +304,8 @@ public class HTTPSessionImpl implements HTTPSession {
         while (st.hasMoreTokens()) {
             String e = st.nextToken();
             int sep = e.indexOf('=');
-            String key = null;
-            String value = null;
+            String key;
+            String value;
 
             if (sep >= 0) {
                 key = NanoHTTPD.decodePercent(e.substring(0, sep)).trim();
@@ -315,7 +317,7 @@ public class HTTPSessionImpl implements HTTPSession {
 
             List<String> values = p.get(key);
             if (values == null) {
-                values = new ArrayList<String>();
+                values = new ArrayList<>();
                 p.put(key, values);
             }
 
@@ -325,7 +327,8 @@ public class HTTPSessionImpl implements HTTPSession {
 
     @Override
     public void execute() throws IOException {
-        Response r = null;
+        Response response = null;
+
         try {
             // Read the first 8192 bytes.
             // The full header should fit in here.
@@ -336,31 +339,28 @@ public class HTTPSessionImpl implements HTTPSession {
             this.splitbyte = 0;
             this.rlen = 0;
 
-            int read = -1;
+            int read;
             this.inputStream.mark(HTTPSessionImpl.BUFFER_SIZE);
             try {
                 read = this.inputStream.read(buf, 0, HTTPSessionImpl.BUFFER_SIZE);
-
-
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {
-                NanoHTTPD.safeClose(this.inputStream);
-                NanoHTTPD.safeClose(this.outputStream);
-                throw new SocketException("NanoHttpd Shutdown");
+                ConnectionClosedException exception = new ConnectionClosedException("Connection closed due to an IO " +
+                        "error.");
+                exception.initCause(e);
+                throw exception;
             }
-            if (read == -1) {
-                // socket was been closed
-                NanoHTTPD.safeClose(this.inputStream);
-                NanoHTTPD.safeClose(this.outputStream);
-                throw new SocketException("NanoHttpd Shutdown");
-            }
+
+            if (read == -1)
+                throw new ConnectionClosedException("Input closed.");
+
             while (read > 0) {
                 this.rlen += read;
                 this.splitbyte = findHeaderEnd(buf, this.rlen);
-                if (this.splitbyte > 0) {
+                if (this.splitbyte > 0)
                     break;
-                }
+
                 read = this.inputStream.read(buf, this.rlen, HTTPSessionImpl.BUFFER_SIZE - this.rlen);
             }
 
@@ -395,9 +395,7 @@ public class HTTPSessionImpl implements HTTPSession {
             }
 
             this.uri = pre.get("uri");
-
             this.cookies = new CookieHandler(this.headers);
-
             String connection = this.headers.get("connection");
             boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches(
                     "(?i).*close.*"));
@@ -407,25 +405,26 @@ public class HTTPSessionImpl implements HTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.handle(this);
+            response = httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 
-            if (r == null) {
+            if (response == null) {
                 throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() " +
                         "returned a null response.");
             } else {
                 String acceptEncoding = this.headers.get("accept-encoding");
-                this.cookies.unloadQueue(r);
-                r.setRequestMethod(this.method);
+                this.cookies.unloadQueue(response);
+                response.setRequestMethod(this.method);
                 if (acceptEncoding == null || !acceptEncoding.contains("gzip")) {
-                    r.setUseGzip(false);
+                    response.setUseGzip(false);
                 }
-                r.setKeepAlive(keepAlive);
-                r.send(this.outputStream);
+                response.setKeepAlive(keepAlive);
+                response.send(this.outputStream);
             }
-            if (!keepAlive || r.isCloseConnection()) {
-                throw new SocketException("NanoHttpd Shutdown");
+            if (!keepAlive || response.isCloseConnection()) {
+                throw new ConnectionClosedException("Connection closed because it is either not keep-alive or " +
+                        "requested by the client.");
             }
         } catch (SocketException | SocketTimeoutException e) {
             // throw it out to close socket object (finalAccept)
@@ -439,17 +438,17 @@ public class HTTPSessionImpl implements HTTPSession {
                     "SSL PROTOCOL FAILURE: " + e.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             Response resp = Response.newFixedLengthResponse(DefaultStatusCode.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                    "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                    "SERVER INTERNAL ERROR: IOException: " + e.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
-        } catch (ResponseException re) {
-            Response resp = Response.newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+        } catch (ResponseException e) {
+            Response resp = Response.newFixedLengthResponse(e.getStatus(), NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
-            NanoHTTPD.safeClose(r);
+            NanoHTTPD.safeClose(response);
             this.tempFileManager.clear();
         }
     }
