@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 - 2016 nanohttpd
+ * Copyright (C) 2012 - 2016 nanohttpd (ServerRunner.java)
  * Copyright (C) 2020 uduhttpd
  *
  * Redistribution and use in source and binary forms, with or without modification,
