@@ -30,7 +30,6 @@
 
 package org.nanohttpd.protocols.http;
 
-import org.apache.http.ConnectionClosedException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;

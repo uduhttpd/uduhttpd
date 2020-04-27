@@ -29,7 +29,7 @@
 
 package org.nanohttpd.protocols.http.client;
 
-import org.apache.http.ConnectionClosedException;
+import org.nanohttpd.protocols.http.ConnectionClosedException;
 import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
