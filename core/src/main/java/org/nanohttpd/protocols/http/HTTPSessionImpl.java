@@ -149,8 +149,9 @@ public class HTTPSessionImpl implements HTTPSession {
                 protocolVersion = st.nextToken();
             } else {
                 protocolVersion = "HTTP/1.1";
-                NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
+                NanoHTTPD.LOG.log(Level.FINE, "No protocol version specified. Assuming HTTP/1.1.");
             }
+
             String line = in.readLine();
             while (line != null && !line.trim().isEmpty()) {
                 int p = line.indexOf(':');
@@ -162,8 +163,7 @@ public class HTTPSessionImpl implements HTTPSession {
 
             pre.put("uri", uri);
         } catch (IOException e) {
-            throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR,
-                    "SERVER INTERNAL ERROR: IOException: " + e.getMessage(), e);
+            throw new ResponseException(DefaultStatusCode.INTERNAL_ERROR, "SERVER INTERNAL ERROR", e);
         }
     }
 
@@ -329,8 +329,7 @@ public class HTTPSessionImpl implements HTTPSession {
             // Read the first 8192 bytes.
             // The full header should fit in here.
             // Apache's default header limit is 8KB.
-            // Do NOT assume that a single read will get the entire header
-            // at once!
+            // Do NOT assume that a single read will get the entire header at once!
             byte[] buf = new byte[HTTPSessionImpl.BUFFER_SIZE];
             this.splitbyte = 0;
             this.rlen = 0;
@@ -342,10 +341,7 @@ public class HTTPSessionImpl implements HTTPSession {
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {
-                ConnectionClosedException exception = new ConnectionClosedException("Connection closed due to an IO " +
-                        "error.");
-                exception.initCause(e);
-                throw exception;
+                throw new ConnectionClosedException("Connection closed due to an IO error.", e);
             }
 
             if (read == -1)
@@ -366,7 +362,7 @@ public class HTTPSessionImpl implements HTTPSession {
             }
 
             this.parms = new HashMap<>();
-            if (null == this.headers) {
+            if (this.headers == null) {
                 this.headers = new HashMap<>();
             } else {
                 this.headers.clear();
@@ -379,7 +375,7 @@ public class HTTPSessionImpl implements HTTPSession {
             Map<String, String> pre = new HashMap<>();
             decodeHeader(hin, pre, this.parms, this.headers);
 
-            if (null != this.remoteIp) {
+            if (this.remoteIp != null) {
                 this.headers.put("remote-addr", this.remoteIp);
                 this.headers.put("http-client-ip", this.remoteIp);
             }

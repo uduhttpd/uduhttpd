@@ -48,7 +48,7 @@ public class DefaultServerExecutor extends NanoHTTPD.ServerExecutor {
 
     @Override
     protected void serve(ServerSocket serverSocket) {
-        do {
+        while (!serverSocket.isClosed() && !Thread.interrupted()) {
             try {
                 serverSocket.setReuseAddress(true);
                 server.handleConnectionRequest(serverSocket.accept());
@@ -56,6 +56,6 @@ public class DefaultServerExecutor extends NanoHTTPD.ServerExecutor {
                 if (!serverSocket.isClosed())
                     e.printStackTrace();
             }
-        } while (!serverSocket.isClosed() && !Thread.interrupted());
+        }
     }
 }
