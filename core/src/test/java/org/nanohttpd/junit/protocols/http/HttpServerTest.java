@@ -218,7 +218,6 @@ public class HttpServerTest {
 
     @Test(expected = ServerStartException.class)
     public void testFailsCorrectlyWhenPortUnavailable() throws ServerStartException, IOException {
-        NanoHTTPD.LOG.info("The test server is running on port: " + testServer.getServerSocketFactory().getBindPort());
         TestServer localServer = newServerInstance();
         localServer.start();
     }
@@ -271,7 +270,7 @@ public class HttpServerTest {
                 InputStream instream = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(instream, StandardCharsets.UTF_8));
                 String line = reader.readLine();
-                assertNotNull(line, "Invalid server reponse");
+                assertNotNull("Invalid server reponse", line);
                 assertEquals("Server failed multi-part data parse" + line, "bincomment", line);
                 reader.close();
                 instream.close();

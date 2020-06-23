@@ -600,7 +600,7 @@ public abstract class NanoHTTPD {
 
         try {
             if (serverThread != null && serverThread.isAlive())
-                serverThread.join();
+                serverThread.join(waitMs);
         } catch (InterruptedException ignored) {
 
         }
@@ -624,9 +624,11 @@ public abstract class NanoHTTPD {
             started = false;
             stopped = false;
             NanoHTTPD server = getServer();
+            ServerSocket serverSocket = null;
 
             try {
-                server.serverSocket = server.getServerSocketFactory().create();
+                serverSocket =  server.getServerSocketFactory().create();
+                server.serverSocket = serverSocket;
                 started = true;
             } catch (Exception e) {
                 startException = new ServerStartException("The server thread crashed during initialization of " +
@@ -639,7 +641,7 @@ public abstract class NanoHTTPD {
 
             if (started)
                 try {
-                    serve(server.getServerSocket());
+                    serve(serverSocket);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

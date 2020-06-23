@@ -42,7 +42,9 @@ import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.router.RouterNanoHTTPD;
 import org.nanohttpd.router.RouterNanoHTTPD.*;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -51,24 +53,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TestNanolets {
-
-    private static PipedOutputStream stdIn;
-
-    private static Thread serverStartThread;
+    private static AppNanolets serverInstance;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        stdIn = new PipedOutputStream();
-        System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {};
-                AppNanolets.main(args);
-            }
-        });
-        serverStartThread.start();
+        serverInstance = new AppNanolets();
+        serverInstance.start();
     }
 
     public static void main(String[] args) {
@@ -364,9 +354,8 @@ public class TestNanolets {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        stdIn.write("\n\n".getBytes());
-        serverStartThread.join(2000);
-        Assert.assertFalse(serverStartThread.isAlive());
+        serverInstance.stop();
+        Assert.assertFalse(serverInstance.isListening());
     }
 
     @Test
@@ -424,7 +413,7 @@ public class TestNanolets {
         Class<?> handler2 = Boolean.class;
         Class<?> handler3 = Long.class;
 
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> classes = new ArrayList<>();
         classes.add(handler1);
         classes.add(handler2);
         classes.add(handler3);
@@ -432,8 +421,7 @@ public class TestNanolets {
         routePrioritizer.addRoute("/user", 100, handler1);
         routePrioritizer.addRoute("/user", 100, handler2);
         routePrioritizer.addRoute("/user", 100, handler3);
-        List<UriResource> prioritizedResources = new ArrayList<>();
-        prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
+        List<UriResource> prioritizedResources = new ArrayList<>(routePrioritizer.getPrioritizedRoutes());
 
         for (int i = 0; i < classes.size(); i++) {
             Class<?> handler = classes.get(i);

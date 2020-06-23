@@ -131,7 +131,7 @@ public class AppNanolets extends RouterNanoHTTPD {
     public AppNanolets() {
         super(PORT);
         addMappings();
-        System.out.println("\nRunning! Point your browers to http://localhost:" + PORT + "/ \n");
+        System.out.println("\nRunning! Point your browsers to http://localhost:" + PORT + "/ \n");
     }
 
     /**
@@ -156,14 +156,5 @@ public class AppNanolets extends RouterNanoHTTPD {
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
         addRoute("/browse/(.)+", StaticPageTestHandler.class, new File("src/test/resources").getAbsoluteFile());
-    }
-
-    /**
-     * Main entry point
-     * 
-     * @param args
-     */
-    public static void main(String[] args) {
-        ServerRunner.run(AppNanolets.class);
     }
 }
