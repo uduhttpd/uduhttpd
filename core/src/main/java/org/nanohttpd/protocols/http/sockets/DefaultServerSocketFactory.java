@@ -30,8 +30,6 @@
 
 package org.nanohttpd.protocols.http.sockets;
 
-import org.nanohttpd.protocols.http.NanoHTTPD;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -46,11 +44,7 @@ public class DefaultServerSocketFactory extends ServerSocketFactoryImpl {
 
     @Override
     public ServerSocket create() throws IOException {
-        NanoHTTPD.LOG.info("Attempt (" + getBindPort() + ")");
-        ServerSocket serverSocket = getBindAddress() != null ? new ServerSocket(getBindPort(), 0, getBindAddress())
+        return getBindAddress() != null ? new ServerSocket(getBindPort(), 0, getBindAddress())
                 : new ServerSocket(getBindPort());
-        serverSocket.setSoTimeout(getSoTimeout());
-        NanoHTTPD.LOG.info("Assigned to port=" + serverSocket.getLocalPort());
-        return serverSocket;
     }
 }

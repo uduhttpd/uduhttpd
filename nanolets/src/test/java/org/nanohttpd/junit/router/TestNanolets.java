@@ -177,7 +177,7 @@ public class TestNanolets {
     public void doUriSelection1() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
-        HttpGet httpget = new HttpGet("http://localhost:9090/toBeDeleted");
+        HttpGet httpget = new HttpGet("http://localhost:9090/user/help");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), StandardCharsets.UTF_8);

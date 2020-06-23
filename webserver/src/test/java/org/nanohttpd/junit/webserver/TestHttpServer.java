@@ -81,8 +81,6 @@ public class TestHttpServer extends AbstractTestHttpServer {
         for (int i = 0; i < 100; i++) {
             int chosen = (int) Math.round(Math.random() * (servers.length - 1));
             NanoHTTPD server = servers[chosen];
-
-            NanoHTTPD.LOG.info("Chosen: " + chosen);
             CloseableHttpClient httpclient = HttpClients.createDefault();
             HttpGet httpget = new HttpGet("http://localhost:" + server.getListeningPort());
             CloseableHttpResponse response = httpclient.execute(httpget);

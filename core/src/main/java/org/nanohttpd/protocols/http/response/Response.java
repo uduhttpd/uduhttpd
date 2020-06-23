@@ -37,6 +37,7 @@ import org.nanohttpd.protocols.http.request.Method;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -209,6 +210,7 @@ public class Response implements Closeable {
      * Sends given response to the socket.
      */
     public void send(OutputStream outputStream) {
+
         SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
         gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
 
