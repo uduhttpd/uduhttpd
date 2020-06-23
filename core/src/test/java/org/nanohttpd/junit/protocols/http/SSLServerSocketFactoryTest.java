@@ -55,6 +55,14 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
         return SecureSockets.createServerSocketFactory("/keystore.jks", "password".toCharArray());
     }
 
+    @Override
+    protected TestServer newServerInstance() throws IOException {
+        System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
+        SecureServerSocketFactory factory = new SecureServerSocketFactory(null, 9043,
+                NanoHTTPD.SOCKET_READ_TIMEOUT, getDefaultSslServerSocketFactory(), null);
+        return new TestServer(factory);
+    }
+
     @Test
     public void testSSLConnection() throws IOException {
         DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -87,10 +95,7 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
-        SecureServerSocketFactory factory = new SecureServerSocketFactory(null, 9043,
-                NanoHTTPD.SOCKET_READ_TIMEOUT, getDefaultSslServerSocketFactory(), null);
-        this.testServer = new TestServer(factory);
+        this.testServer = newServerInstance();
         this.tempFileManager = new TestTempFileManager();
         this.testServer.start();
     }

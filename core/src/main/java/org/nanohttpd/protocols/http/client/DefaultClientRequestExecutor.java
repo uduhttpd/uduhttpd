@@ -30,6 +30,7 @@
 package org.nanohttpd.protocols.http.client;
 
 import org.nanohttpd.protocols.http.ConnectionClosedException;
+import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.HTTPSessionImpl;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
@@ -37,9 +38,8 @@ import org.nanohttpd.protocols.http.tempfiles.TempFileManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 
 public class DefaultClientRequestExecutor implements ClientRequestExecutor {
@@ -57,6 +57,11 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
         clientSocket.close();
     }
 
+    protected HTTPSession createSession(NanoHTTPD server, TempFileManager tempFileManager, InputStream inputStream,
+                                        OutputStream outputStream, InetAddress clientAddress) {
+        return new HTTPSessionImpl(server, tempFileManager, inputStream, outputStream, clientAddress);
+    }
+
     public Socket getClientSocket() {
         return clientSocket;
     }
@@ -64,15 +69,12 @@ public class DefaultClientRequestExecutor implements ClientRequestExecutor {
     @Override
     public void run() {
         try {
-            NanoHTTPD.LOG.info("Start handling");
             InputStream inputStream = clientSocket.getInputStream();
             OutputStream outputStream = clientSocket.getOutputStream();
             TempFileManager tempFileManager = server.getTempFileManagerFactory().create();
-            HTTPSessionImpl session = new HTTPSessionImpl(server, tempFileManager, inputStream, outputStream,
-                    clientSocket.getInetAddress());
+
             while (!clientSocket.isClosed()) {
-                NanoHTTPD.LOG.info("Execute");
-                session.execute();
+                createSession(server, tempFileManager, inputStream, outputStream, clientSocket.getInetAddress()).execute();
             }
         } catch (ConnectionClosedException e) {
             e.printStackTrace();

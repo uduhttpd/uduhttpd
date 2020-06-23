@@ -42,46 +42,25 @@ import org.nanohttpd.webserver.SimpleWebServer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.*;
 
 @FixMethodOrder
 public class TestHttpServer extends AbstractTestHttpServer {
-
-    private static PipedOutputStream stdIn;
-
-    private static Thread serverStartThread;
+    private static SimpleWebServer webServer;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        stdIn = new PipedOutputStream();
-        System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources"};
-                try {
-                    SimpleWebServer.main(args);
-                } catch (IOException | ServerStartException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        serverStartThread.start();
-        // give the server some tine to start.
-        Thread.sleep(100);
+        String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources"};
+        webServer = SimpleWebServer.start(args);
+        Assert.assertTrue(webServer.isListening());
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
-        stdIn.write("\n\n".getBytes());
-        serverStartThread.join(2000);
-        Assert.assertFalse(serverStartThread.isAlive());
+    public static void tearDown() {
+        webServer.stop();
+        Assert.assertFalse(webServer.isListening());
     }
 
     @Test

@@ -182,6 +182,10 @@ public class HttpServerTest {
         return outputStream;
     }
 
+    protected TestServer newServerInstance() throws IOException {
+        return new TestServer();
+    }
+
     protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
         List<String> lines = new ArrayList<>();
         String line = "";
@@ -196,7 +200,7 @@ public class HttpServerTest {
 
     @Before
     public void setUp() throws Exception {
-        this.testServer = new TestServer();
+        this.testServer = newServerInstance();
         this.tempFileManager = new TestTempFileManager();
         this.testServer.start();
     }
@@ -213,8 +217,9 @@ public class HttpServerTest {
     }
 
     @Test(expected = ServerStartException.class)
-    public void testFailsCorrectlyWhenPortUnavailable() throws ServerStartException {
-        TestServer localServer = new TestServer();
+    public void testFailsCorrectlyWhenPortUnavailable() throws ServerStartException, IOException {
+        NanoHTTPD.LOG.info("The test server is running on port: " + testServer.getServerSocketFactory().getBindPort());
+        TestServer localServer = newServerInstance();
         localServer.start();
     }
 

@@ -33,6 +33,7 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 public class DefaultServerExecutor extends NanoHTTPD.ServerExecutor {
     private final NanoHTTPD server;
@@ -51,7 +52,9 @@ public class DefaultServerExecutor extends NanoHTTPD.ServerExecutor {
         while (!serverSocket.isClosed() && !Thread.interrupted()) {
             try {
                 serverSocket.setReuseAddress(true);
-                server.handleConnectionRequest(serverSocket.accept());
+                Socket client = serverSocket.accept();
+                client.setSoTimeout(getServer().getServerSocketFactory().getSoTimeout());
+                server.handleConnectionRequest(client);
             } catch (IOException e) {
                 if (!serverSocket.isClosed())
                     e.printStackTrace();

@@ -49,6 +49,7 @@ public class DefaultServerSocketFactory extends ServerSocketFactoryImpl {
         NanoHTTPD.LOG.info("Attempt (" + getBindPort() + ")");
         ServerSocket serverSocket = getBindAddress() != null ? new ServerSocket(getBindPort(), 0, getBindAddress())
                 : new ServerSocket(getBindPort());
+        serverSocket.setSoTimeout(getSoTimeout());
         NanoHTTPD.LOG.info("Assigned to port=" + serverSocket.getLocalPort());
         return serverSocket;
     }

@@ -40,50 +40,28 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.server.ServerStartException;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.webserver.SimpleWebServer;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
  * @author Matthieu Brouillard [matthieu@brouillard.fr]
  */
 public class TestCorsHttpServer extends AbstractTestHttpServer {
-
-    private static PipedOutputStream stdIn;
-
-    private static Thread serverStartThread;
+    private static NanoHTTPD serverInstance;
 
     @BeforeClass
     public static void setUp() throws Exception {
         System.out.println("Starting server etc.");
-        stdIn = new PipedOutputStream();
-        System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors"};
-                try {
-                    SimpleWebServer.main(args);
-                } catch (IOException | ServerStartException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        serverStartThread.start();
-        // give the server some tine to start.
-        Thread.sleep(100);
+        String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors"};
+        serverInstance = SimpleWebServer.start(args);
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        stdIn.write("\n\n".getBytes());
-        serverStartThread.join(2000);
-        Assert.assertFalse(serverStartThread.isAlive());
+        serverInstance.stop();
+        Assert.assertFalse(serverInstance.isListening());
     }
 
     @Test

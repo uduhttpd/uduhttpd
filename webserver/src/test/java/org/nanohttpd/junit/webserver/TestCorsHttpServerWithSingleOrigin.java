@@ -40,52 +40,29 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.server.ServerStartException;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.webserver.SimpleWebServer;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Matthieu Brouillard [matthieu@brouillard.fr]
  */
 public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
-
-    private static PipedOutputStream stdIn;
-
-    private static Thread serverStartThread;
+    private static NanoHTTPD serverInstance;
 
     @BeforeClass
     public static void setUp() throws Exception {
         System.out.println("Starting up");
-        stdIn = new PipedOutputStream();
-        System.setIn(new PipedInputStream(stdIn));
-        serverStartThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources",
-                        "--cors=http://localhost:9090"};
-                try {
-                    SimpleWebServer.main(args);
-                } catch (IOException | ServerStartException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        serverStartThread.start();
-        Thread.sleep(100);
+        String[] args = {"--host", "localhost", "--port", "9090", "--dir", "src/test/resources",
+                "--cors=http://localhost:9090"};
+        serverInstance = SimpleWebServer.start(args);
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        stdIn.write("\n\n".getBytes());
-        serverStartThread.join(2000);
-        Assert.assertFalse("The server thread didn't exit after the tests", serverStartThread.isAlive());
+        serverInstance.stop();
+        Assert.assertFalse("The server thread didn't exit after the tests", serverInstance.isListening());
     }
 
     @Test

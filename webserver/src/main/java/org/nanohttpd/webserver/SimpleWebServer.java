@@ -37,7 +37,6 @@ import org.nanohttpd.protocols.http.response.DefaultStatusCode;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.StatusCode;
 import org.nanohttpd.protocols.http.server.ServerStartException;
-import org.nanohttpd.util.ServerRunner;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -61,20 +60,23 @@ public class SimpleWebServer extends NanoHTTPD {
         INDEX_FILE_NAMES.add("index.htm");
 
         mimeTypes();
-        String text;
+
+        String license;
+
         try {
             InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int count;
-            while ((count = stream.read(buffer)) >= 0) {
+            while ((count = stream.read(buffer)) >= 0)
                 bytes.write(buffer, 0, count);
-            }
-            text = bytes.toString("UTF-8");
+
+            license = bytes.toString("UTF-8");
         } catch (Exception e) {
-            text = "unknown";
+            license = "unknown";
         }
-        LICENCE = text;
+
+        LICENCE = license;
     }
 
     private static final Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<>();
@@ -83,6 +85,10 @@ public class SimpleWebServer extends NanoHTTPD {
      * Starts as a standalone file server and waits for Enter.
      */
     public static void main(String[] args) throws IOException, ServerStartException {
+        start(args);
+    }
+
+    public static SimpleWebServer createCommandLineInstance(String[] args) throws UnknownHostException {
         // Defaults
         int port = 8080;
 
@@ -155,7 +161,14 @@ public class SimpleWebServer extends NanoHTTPD {
                 registerPluginForMimeType(indexFiles, mime, info.getWebServerPlugin(mime), options);
             }
         }
-        ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet, cors));
+
+        return new SimpleWebServer(host, port, rootDirs, quiet, cors);
+    }
+
+    public static SimpleWebServer start(String[] args) throws UnknownHostException, ServerStartException {
+        SimpleWebServer server = createCommandLineInstance(args);
+        server.start();
+        return server;
     }
 
     protected static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin,

@@ -33,6 +33,8 @@
 
 package org.nanohttpd.util.concurrent;
 
+import org.nanohttpd.protocols.http.NanoHTTPD;
+
 import java.util.List;
 
 /**
